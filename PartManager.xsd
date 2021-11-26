@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--PartManager.xsd-->
+
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://PartManager.com"
+  xmlns="http://PartManager.com"
+  xmlns:VGA="http://PartManager.com/parts/VGA"
+  xmlns:CPU="http://PartManager.com/parts/CPU"
+  elementFormDefault="qualified">
+
+  <xsd:import namespace="http://PartManager.com/parts/VGA" schemaLocation="Part_VGA.xsd" />
+  <xsd:import namespace="http://PartManager.com/parts/CPU" schemaLocation="Part_CPU.xsd" />
+
+  <xsd:element name="Parts">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="VGA:VGA" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element ref="CPU:CPU" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

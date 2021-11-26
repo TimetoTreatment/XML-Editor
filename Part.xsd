@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Part.xsd-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://PartManager.com/part"
+            xmlns="http://PartManager.com/part"
+            elementFormDefault="qualified">
+
+  <xsd:complexType name="Part">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element name="manufacturer" type="xsd:string"/>
+      <xsd:element name="series" type="xsd:string"/>
+      <xsd:element name="launch_date" type="xsd:date"/>
+      <xsd:element ref="msrp"/>
+    </xsd:sequence>
+    <xsd:attribute name="id" type="xsd:ID" use="required"/>
+  </xsd:complexType>
+
+  <!--Element Reference-->
+  <xsd:element name="msrp">
+    <xsd:complexType>
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:integer">
+          <xsd:attribute name="unit" type="MonetaryUnit" use="required"/>
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!--Type-->
+  <xsd:simpleType name="MonetaryUnit">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="KRW"/>
+      <xsd:enumeration value="USD"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

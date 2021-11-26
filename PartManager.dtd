@@ -1,0 +1,38 @@
+<!ENTITY NVDA "NVIDIA">
+<!ENTITY % monetary_unit 'unit (KRW | USD) "USD"'>
+
+<!ELEMENT Parts (VGA:VGA*, CPU:CPU*)>
+<!ATTLIST Parts xmlns:xsi CDATA #IMPLIED>
+<!ATTLIST Parts xsi:schemaLocation CDATA #IMPLIED>
+<!ATTLIST Parts xmlns CDATA #IMPLIED>
+<!ATTLIST Parts xmlns:VGA CDATA #IMPLIED>
+<!ATTLIST Parts xmlns:CPU CDATA #IMPLIED>
+<!ATTLIST Parts xmlns:part CDATA #IMPLIED>
+
+<!ATTLIST VGA:VGA id CDATA #REQUIRED>
+<!ELEMENT VGA:VGA (part:name, part:manufacturer, part:series, part:launch_date, part:msrp, VGA:specs)>
+
+<!ELEMENT part:name (#PCDATA)>
+<!ELEMENT part:manufacturer (#PCDATA)>
+<!ELEMENT part:series (#PCDATA)>
+<!ELEMENT part:launch_date (#PCDATA)>
+<!ELEMENT part:msrp (#PCDATA)>
+<!ATTLIST part:msrp %monetary_unit;>
+
+<!ELEMENT VGA:specs (VGA:core_num, VGA:memory_size, VGA:power_consumption, VGA:slot_size?)>
+
+<!ELEMENT VGA:core_num (#PCDATA)>
+<!ELEMENT VGA:memory_size (#PCDATA)>
+<!ATTLIST VGA:memory_size type CDATA #REQUIRED>
+<!ELEMENT VGA:power_consumption (#PCDATA)>
+<!ELEMENT VGA:slot_size (#PCDATA)>
+
+<!ATTLIST CPU:CPU id CDATA #REQUIRED>
+<!ELEMENT CPU:CPU (part:name, part:manufacturer, part:series, part:launch_date, part:msrp, CPU:specs)>
+
+<!ELEMENT CPU:specs (CPU:core_num, CPU:frequency, CPU:power_consumption, CPU:integrated_graphics?)>
+
+<!ELEMENT CPU:core_num (#PCDATA)>
+<!ELEMENT CPU:frequency (#PCDATA)>
+<!ELEMENT CPU:power_consumption (#PCDATA)>
+<!ELEMENT CPU:integrated_graphics (#PCDATA)>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Part_VGA.xsd-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://PartManager.com/parts/VGA"
+            xmlns="http://PartManager.com/parts/VGA"
+            xmlns:part="http://PartManager.com/part"
+            elementFormDefault="qualified">
+
+  <xsd:include schemaLocation="Part_VGA_Type.xsd"/>
+  <xsd:import namespace="http://PartManager.com/part" schemaLocation="Part.xsd"/>
+
+  <xsd:element name="VGA">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="part:Part">
+          <xsd:sequence>
+            <xsd:element ref="specs"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!--Specs-->
+  <xsd:element name="specs">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="core_num" type="xsd:integer"/>
+        <xsd:element name="memory_size" type="MemorySize" />
+        <xsd:element name="power_consumption" type="xsd:integer"/>
+        <xsd:element name="slot_size" type="SlotSize" minOccurs="0"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

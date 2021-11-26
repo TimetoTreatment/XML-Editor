@@ -1,8 +1,10 @@
 package main.form;
 
 import main.controller.FileController;
+import main.controller.XmlController;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 public class ControlPanel
 {
     FileController fileController;
+    XmlController xmlController;
 
     ArrayList<JButton> buttonList;
     public JPanel mainPanel;
@@ -24,12 +27,14 @@ public class ControlPanel
     private JButton a7UpdateButton;
     private JButton a8DeleteButton;
     private JButton a9ExitButton;
+    private JLabel statusBar;
 
     String currentPath;
 
     public ControlPanel(DisplayPanel displayPanel)
     {
-        this.fileController = FileController.getInstance(displayPanel);
+        this.fileController = FileController.getInstance(displayPanel, statusBar);
+        this.xmlController = XmlController.getInstance(displayPanel, statusBar);
 
         mainPanel.setBorder(new MatteBorder(0, 2, 2, 2, Color.black));
 
@@ -44,7 +49,8 @@ public class ControlPanel
         buttonList.add(a7UpdateButton);
         buttonList.add(a8DeleteButton);
 
-        for (var button : buttonList) {
+        for (var button : buttonList)
+        {
             button.setForeground(Color.darkGray);
             button.setBackground(Color.white);
             button.setBorder(new LineBorder(Color.black));
@@ -63,6 +69,10 @@ public class ControlPanel
         addKeyBind(a7UpdateButton, "7", "UPDATE", update);
         addKeyBind(a8DeleteButton, "8", "DELETE", delete);
         addKeyBind(a9ExitButton, "9", "EXIT", exit);
+
+        statusBar.setForeground(Color.red);
+        statusBar.setText("File not loaded");
+        statusBar.setBorder(new EmptyBorder(0,0,0,10));
     }
 
     private void addKeyBind(JButton button, String key, String mapKey, Action action)
@@ -93,13 +103,13 @@ public class ControlPanel
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            String path = JOptionPane.showInputDialog(null, "Enter the file path", "2. Make", JOptionPane.PLAIN_MESSAGE);
+            String rootName = JOptionPane.showInputDialog(null, "Enter the file name", "2. Make", JOptionPane.PLAIN_MESSAGE);
 
-            if (path == null)
+            if (rootName == null)
                 return;
 
-            if (fileController.make(path))
-                currentPath = path;
+            if (fileController.make(rootName))
+                currentPath = rootName;
         }
     };
 
@@ -113,7 +123,7 @@ public class ControlPanel
             if (str == null)
                 return;
 
-            fileController.find(str);
+            xmlController.find(str);
         }
     };
 

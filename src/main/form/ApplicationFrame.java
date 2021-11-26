@@ -13,12 +13,12 @@ public class ApplicationFrame extends JFrame
         displayPanel = new DisplayPanel();
         controlPanel = new ControlPanel(displayPanel).mainPanel;
 
-        displayPanel.setText("XML Programming Project");
+        displayPanel.setText(tutorialText());
 
         setTitle("XML Programming");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout());
-        setSize(480, 640);
+        setSize(750, 1000);
         displayPanel.setMaximumSize(new Dimension(480, 640 / 3));
         controlPanel.setMaximumSize(new Dimension(480, 640 * 2 / 3));
 
@@ -37,5 +37,23 @@ public class ApplicationFrame extends JFrame
 
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    private String tutorialText()
+    {
+        String text = "";
+
+        text += "<h1>XML Programming Project</h1><br/>";
+        text += "<h2>How to Use</h2>";
+        text += "&nbsp;&nbsp;1. Load or Make XML file.<br/>";
+        text += "&nbsp;&nbsp;2. Manipulate XML. <br/>";
+        text += "&nbsp;&nbsp;3. Save and Exit. <br/><br/>";
+        text += "<h2>Legend</h2>";
+        text += "&nbsp;&nbsp;<font color=\"blue\">- ELEMENT <br/>";
+        text += "&nbsp;&nbsp;<font color=\"#0078FF\">- ATTRIBUTE <br/>";
+        text += "&nbsp;&nbsp;<font color=\"green\">- COMMENT <br/>";
+        text += "&nbsp;&nbsp;<font color=\"black\">- TEXT <br/>";
+
+        return text;
     }
 }

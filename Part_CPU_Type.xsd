@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Part_CPU_Type.xsd-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://PartManager.com/parts/CPU"
+            xmlns="http://PartManager.com/parts/CPU"
+            elementFormDefault="qualified">
+
+  <xsd:simpleType name="Frequency">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:minInclusive value="2.0"/>
+      <xsd:maxExclusive value="6.0"/>
+      <xsd:fractionDigits value="2"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>
