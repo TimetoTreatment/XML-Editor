@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="kaka"?>
+
+<VGA_chipsets>
+    <!--NVIDIA-->
+    <!--GeForce RTX 30 Series-->
+    <VGA_chipset id="n0">
+        <name>GeForce RTX 3090</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce RTX 30</series>
+        <launch_date>2020.09.24</launch_date>
+        <msrp unit="USD">1499</msrp>
+        <slot_size>3</slot_size>
+        <power_consumption>350</power_consumption>
+        <specs>
+            <core_num>10496</core_num>
+            <memory_size type="GDDR6X">24</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n1">
+        <name>GeForce RTX 3080 Ti</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce RTX 30</series>
+        <launch_date>2021.06.03</launch_date>
+        <msrp unit="USD">1199</msrp>
+        <slot_size>2</slot_size>
+        <specs>
+            <core_num>10240</core_num>
+            <memory_size type="GDDR6X">12</memory_size>
+            <power_consumption>350</power_consumption>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n2">
+        <name>GeForce RTX 3080</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce RTX 30</series>
+        <launch_date>2020.09.17</launch_date>
+        <msrp unit="USD">699</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>320</power_consumption>
+        <specs>
+            <core_num>8704</core_num>
+            <memory_size type="GDDR6X">10</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n3">
+        <name>GeForce RTX 3070 Ti</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce RTX 30</series>
+        <launch_date>2021.06.10</launch_date>
+        <msrp unit="USD">599</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>290</power_consumption>
+        <specs>
+            <core_num>6144</core_num>
+            <memory_size type="GDDR6X">8</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n4">
+        <name>GeForce RTX 3070</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce RTX 30</series>
+        <launch_date>2020.10.29</launch_date>
+        <msrp unit="USD">499</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>220</power_consumption>
+        <specs>
+            <core_num>5888</core_num>
+            <memory_size type="GDDR6">8</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n5">
+        <name>GeForce RTX 3060 Ti</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce RTX 30</series>
+        <launch_date>2020.12.02</launch_date>
+        <msrp unit="USD">399</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>200</power_consumption>
+        <specs>
+            <core_num>4864</core_num>
+            <memory_size type="GDDR6">8</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n6">
+        <name>GeForce RTX 3060</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce RTX 30</series>
+        <launch_date>2021.02.25</launch_date>
+        <msrp unit="USD">329</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>170</power_consumption>
+        <specs>
+            <core_num>3584</core_num>
+            <memory_size type="GDDR6">12</memory_size>
+        </specs>
+    </VGA_chipset>
+
+    <!--NVIDIA-->
+    <!--GeForce GTX 16 Series-->
+    <VGA_chipset id="n7">
+        <name>GeForce GTX 1660 Ti</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce GTX 16</series>
+        <launch_date>2019.02.22</launch_date>
+        <msrp unit="USD">279</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>120</power_consumption>
+        <specs>
+            <core_num>1536</core_num>
+            <memory_size type="GDDR6">6</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n8">
+        <name>GeForce GTX 1660 Super</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce GTX 16</series>
+        <launch_date>2019.10.29</launch_date>
+        <msrp unit="USD">229</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>120</power_consumption>
+        <specs>
+            <core_num>1408</core_num>
+            <memory_size type="GDDR6">6</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n9">
+        <name>GeForce GTX 1660</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce GTX 16</series>
+        <launch_date>2019.03.14</launch_date>
+        <msrp unit="USD">219</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>120</power_consumption>
+        <specs>
+            <core_num>1408</core_num>
+            <memory_size type="GDDR5">6</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n10">
+        <name>GeForce GTX 1650 Super</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce GTX 16</series>
+        <launch_date>2019.11.22</launch_date>
+        <msrp unit="USD">159</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>100</power_consumption>
+        <specs>
+            <core_num>1280</core_num>
+            <memory_size type="GDDR6">4</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="n11">
+        <name>GeForce GTX 1650</name>
+        <manufacturer>NVIDIA</manufacturer>
+        <series>GeForce GTX 16</series>
+        <launch_date>2019.04.23</launch_date>
+        <msrp unit="USD">149</msrp>
+        <power_consumption>75</power_consumption>
+        <specs>
+            <core_num>896</core_num>
+            <memory_size type="GDDR5">4</memory_size>
+        </specs>
+    </VGA_chipset>
+
+    <!--AMD-->
+    <!--Radeon RX 6000 Series-->
+    <VGA_chipset id="a1">
+        <name>Radeon RX 6900 XT</name>
+        <manufacturer>AMD</manufacturer>
+        <series>Radeon RX 6000</series>
+        <launch_date>2020.12.08</launch_date>
+        <msrp unit="USD">999</msrp>
+        <slot_size>2.5</slot_size>
+        <power_consumption>300</power_consumption>
+        <specs>
+            <core_num>5120</core_num>
+            <memory_size type="GDDR6">16</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="a2">
+        <name>Radeon RX 6800 XT</name>
+        <manufacturer>AMD</manufacturer>
+        <series>Radeon RX 6000</series>
+        <launch_date>2020.11.18</launch_date>
+        <msrp unit="USD">649</msrp>
+        <slot_size>2.5</slot_size>
+        <power_consumption>300</power_consumption>
+        <specs>
+            <core_num>4608</core_num>
+            <memory_size type="GDDR6">16</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="a3">
+        <name>Radeon RX 6800</name>
+        <manufacturer>AMD</manufacturer>
+        <series>Radeon RX 6000</series>
+        <launch_date>2020.11.18</launch_date>
+        <msrp unit="USD">579</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>250</power_consumption>
+        <specs>
+            <core_num>3840</core_num>
+            <memory_size type="GDDR6">16</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="a4">
+        <name>Radeon RX 6700 XT</name>
+        <manufacturer>AMD</manufacturer>
+        <series>Radeon RX 6000</series>
+        <launch_date>2021.03.18</launch_date>
+        <msrp unit="USD">479</msrp>
+        <slot_size>2</slot_size>
+        <power_consumption>230</power_consumption>
+        <specs>
+            <core_num>2560</core_num>
+            <memory_size type="GDDR6">12</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="a5">
+        <name>Radeon RX 6600 XT</name>
+        <manufacturer>AMD</manufacturer>
+        <series>Radeon RX 6000</series>
+        <launch_date>2021.08.11</launch_date>
+        <msrp unit="USD">379</msrp>
+        <power_consumption>160</power_consumption>
+        <specs>
+            <core_num>2048</core_num>
+            <memory_size type="GDDR6">8</memory_size>
+        </specs>
+    </VGA_chipset>
+    <VGA_chipset id="a6">
+        <name>Radeon RX 6600</name>
+        <manufacturer>AMD</manufacturer>
+        <series>Radeon RX 6000</series>
+        <launch_date>2021.10.13</launch_date>
+        <msrp unit="USD">329</msrp>
+        <power_consumption>132</power_consumption>
+        <specs>
+            <core_num>1792</core_num>
+            <memory_size type="GDDR6">8</memory_size>
+        </specs>
+    </VGA_chipset>
+</VGA_chipsets>
