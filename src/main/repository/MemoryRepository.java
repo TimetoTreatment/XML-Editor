@@ -49,7 +49,7 @@ public class MemoryRepository
         }
     }
 
-    public void load(String path)
+    public boolean load(String path)
     {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -61,6 +61,11 @@ public class MemoryRepository
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        if(document == null)
+            return false;
+
+        return true;
     }
 
     // Singleton

@@ -6,37 +6,47 @@ import main.domain.VGA;
 import main.repository.MemoryRepository;
 import main.form.DisplayPanel;
 import org.apache.xerces.dom.DocumentImpl;
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.*;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.io.*;
-import java.nio.file.Paths;
 import java.util.Stack;
 
 public class FileController
 {
-    MemoryRepository memoryRepository;
-    DisplayPanel displayPanel;
-    JLabel statusBar;
+    private MemoryRepository memoryRepository;
+    private DisplayPanel displayPanel;
+    private JLabel statusBar;
+
+    private String plainText;
+    private DefaultMutableTreeNode treeRoot;
+    private DefaultTreeModel treeModel;
 
     private FileController(DisplayPanel displayPanel, JLabel statusBar)
     {
         this.memoryRepository = MemoryRepository.getInstance();
         this.displayPanel = displayPanel;
         this.statusBar = statusBar;
+
+        treeRoot = displayPanel.getEditModeTreeRoot();
+        treeModel = displayPanel.getEditModeTreeModel();
     }
 
     public boolean load(String path)
     {
-        memoryRepository.load(path);
+        if (memoryRepository.load(path) == false)
+            return false;
 
         print();
 
         statusBar.setText("\"" + path + "\" is loaded.");
         statusBar.setForeground(Color.black);
+
+        displayPanel.setEditModeEnable(true);
+
+        treeModel.reload();
 
         return true;
     }
@@ -65,20 +75,34 @@ public class FileController
     {
         memoryRepository.save(newPath);
 
-        displayPanel.setText("Menu 4: Save \"" + newPath + "\"");
+        displayPanel.setViewModeText("Menu 4: Save \"" + newPath + "\"");
         return true;
     }
 
-    public boolean print()
+    public void print()
+    {
+        traverse();
+
+        displayPanel.setViewModeText(plainText);
+    }
+
+    public void traverse()
+    {
+        plainText = createPlainText();
+        createTree();
+    }
+
+    public String createPlainText()
     {
         String uri = memoryRepository.getDocument().getDocumentURI();
 
-        String contents = "<h1 style=\"text-align:center\"> :: " + uri.substring(uri.lastIndexOf('/') + 1, uri.length()) + " ::</h1><br/>";
         Stack<Node> nodeStack = new Stack<>();
         Stack<Integer> indentStack = new Stack<>();
 
         nodeStack.push(memoryRepository.getDocument().getDocumentElement());
         indentStack.push(0);
+
+        String contents = "<h1 style=\"text-align:center\"> :: " + uri.substring(uri.lastIndexOf('/') + 1, uri.length()) + " ::</h1><br/>";
 
         while (!nodeStack.empty())
         {
@@ -91,8 +115,6 @@ public class FileController
 
             for (int i = 0; i < indent; i++)
                 blank += "&nbsp;";
-
-            boolean continueFlag = false;
 
             switch (node.getNodeType())
             {
@@ -107,6 +129,7 @@ public class FileController
                     break;
 
                 case Node.CDATA_SECTION_NODE:
+                case Node.TEXT_NODE:
                     contents += blank + node.getNodeValue();
                     break;
 
@@ -114,35 +137,25 @@ public class FileController
                     contents += "<font color=\"green\">" + blank + node.getNodeValue() + "</font>";
                     break;
 
-                case Node.TEXT_NODE:
-                    if (node.getNodeValue().isBlank() == true)
-                    {
-                        continueFlag = true;
-                        break;
-                    }
-                    contents += blank + node.getNodeValue();
-                    break;
-
                 case Node.ATTRIBUTE_NODE:
-                    if (node.getNodeValue().isBlank() == true)
-                    {
-                        continueFlag = true;
-                        break;
-                    }
                     contents += "<font color=\"#0078FF\">" + blank + node.getNodeName() + "</font><font color=\"#A8A8A8\"> = </font><font color=\"black\">" + node.getNodeValue() + "</font>";
                     break;
             }
-
-            if (continueFlag == true)
-                continue;
 
             contents += "<br/>";
 
             if (node.getNodeType() != Node.ATTRIBUTE_NODE)
             {
+                Node subNode;
+
                 for (int i = childNodes.getLength() - 1; i >= 0; i--)
                 {
-                    nodeStack.push(childNodes.item(i));
+                    subNode = childNodes.item(i);
+
+                    if ((subNode.getNodeType() == Node.ATTRIBUTE_NODE || subNode.getNodeType() == Node.TEXT_NODE) && (subNode.getNodeValue().isBlank()))
+                        continue;
+
+                    nodeStack.push(subNode);
                     indentStack.push(indent + 4);
                 }
 
@@ -150,33 +163,125 @@ public class FileController
                 {
                     for (int i = attributes.getLength() - 1; i >= 0; i--)
                     {
-                        nodeStack.push(attributes.item(i));
+                        subNode = attributes.item(i);
+
+                        if ((subNode.getNodeType() == Node.ATTRIBUTE_NODE || subNode.getNodeType() == Node.TEXT_NODE) && (subNode.getNodeValue().isBlank()))
+                            continue;
+
+                        nodeStack.push(subNode);
                         indentStack.push(indent + 4);
                     }
                 }
             }
         }
 
-        displayPanel.setText(contents);
+        return contents;
+    }
+
+    public boolean createTree()
+    {
+        String uri = memoryRepository.getDocument().getDocumentURI();
+
+        Stack<Node> nodeStack = new Stack<>();
+        Stack<Integer> indentStack = new Stack<>();
+        Stack<DefaultMutableTreeNode> treeNodeStack = new Stack<>();
+
+        nodeStack.push(memoryRepository.getDocument().getDocumentElement());
+        indentStack.push(0);
+
+        treeNodeStack.push(treeRoot);
+
+        DefaultMutableTreeNode treeNewNode;
+
+        while (!nodeStack.empty())
+        {
+            Node node = nodeStack.pop();
+            Integer indent = indentStack.pop();
+            NodeList childNodes = node.getChildNodes();
+            NamedNodeMap attributes = node.getAttributes();
+
+            DefaultMutableTreeNode treeNode = treeNodeStack.pop();
+
+            switch (node.getNodeType())
+            {
+                case Node.DOCUMENT_NODE:
+                case Node.ENTITY_NODE:
+                case Node.ELEMENT_NODE:
+                case Node.ENTITY_REFERENCE_NODE:
+                    treeNode.setUserObject(node.getNodeName());
+                    break;
+
+                case Node.CDATA_SECTION_NODE:
+                case Node.TEXT_NODE:
+
+                case Node.COMMENT_NODE:
+                    treeNode.setUserObject(node.getNodeValue());
+                    break;
+
+                case Node.ATTRIBUTE_NODE:
+                    treeNode.setUserObject(node.getNodeName() + " = " + node.getNodeValue());
+
+                    break;
+            }
+
+            if (node.getNodeType() != Node.ATTRIBUTE_NODE)
+            {
+                Node subNode;
+
+                if (attributes != null)
+                {
+                    for (int i = 0; i < attributes.getLength(); i++)
+                    {
+                        subNode = attributes.item(i);
+
+                        if ((subNode.getNodeType() == Node.ATTRIBUTE_NODE || subNode.getNodeType() == Node.TEXT_NODE) && (subNode.getNodeValue().isBlank()))
+                            continue;
+
+                        nodeStack.push(subNode);
+                        indentStack.push(indent + 4);
+
+                        treeNewNode = new DefaultMutableTreeNode();
+                        treeNodeStack.push(treeNewNode);
+                        treeNode.add(treeNewNode);
+                    }
+                }
+
+                for (int i = 0; i < childNodes.getLength(); i++)
+                {
+                    subNode = childNodes.item(i);
+
+                    if ((subNode.getNodeType() == Node.ATTRIBUTE_NODE || subNode.getNodeType() == Node.TEXT_NODE) && (subNode.getNodeValue().isBlank()))
+                        continue;
+
+                    nodeStack.push(subNode);
+                    indentStack.push(indent + 4);
+
+                    treeNewNode = new DefaultMutableTreeNode();
+                    treeNodeStack.push(treeNewNode);
+                    treeNode.add(treeNewNode);
+                }
+            }
+        }
 
         return true;
     }
 
+
     public boolean insert(String str)
     {
-        displayPanel.setText("The \"" + str + "\" insertion is complete.");
+        displayPanel.setViewModeText("The \"" + str + "\" insertion is complete.");
         return true;
     }
 
     public boolean update(String str)
     {
-        displayPanel.setText("The \"" + str + "\" update is complete.");
+        displayPanel.setViewModeText("The \"" + str + "\" update is complete.");
         return true;
     }
 
     public boolean delete(String str)
     {
-        displayPanel.setText("The \"" + str + "\" deletion is complete.");
+        displayPanel.setViewModeText("The \"" + str + "\" deletion is complete.");
         return true;
     }
 

@@ -13,7 +13,7 @@ public class ApplicationFrame extends JFrame
         displayPanel = new DisplayPanel();
         controlPanel = new ControlPanel(displayPanel).mainPanel;
 
-        displayPanel.setText(tutorialText());
+        displayPanel.setViewModeText(tutorialText());
 
         setTitle("XML Programming");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -49,10 +49,10 @@ public class ApplicationFrame extends JFrame
         text += "&nbsp;&nbsp;2. Manipulate XML. <br/>";
         text += "&nbsp;&nbsp;3. Save and Exit. <br/><br/>";
         text += "<h2>Legend</h2>";
-        text += "&nbsp;&nbsp;<font color=\"blue\">- ELEMENT <br/>";
-        text += "&nbsp;&nbsp;<font color=\"#0078FF\">- ATTRIBUTE <br/>";
-        text += "&nbsp;&nbsp;<font color=\"green\">- COMMENT <br/>";
-        text += "&nbsp;&nbsp;<font color=\"black\">- TEXT <br/>";
+        text += "&nbsp;&nbsp;<font color=\"blue\"><b>[E]</b> Element <br/>";
+        text += "&nbsp;&nbsp;<font color=\"#0078FF\"><b>[A]</b> Attribute <br/>";
+        text += "&nbsp;&nbsp;<font color=\"green\"><b>[C]</b> Comment <br/>";
+        text += "&nbsp;&nbsp;<font color=\"black\"><b>[T]</b> Text <br/>";
 
         return text;
     }

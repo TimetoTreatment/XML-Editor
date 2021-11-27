@@ -20,7 +20,7 @@ public class XmlController
 
     public boolean find(String str)
     {
-        displayPanel.setText("\"" + str + "\" is finding some keywords.");
+        displayPanel.setViewModeText("\"" + str + "\" is finding some keywords.");
         return true;
     }
 
