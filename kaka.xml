@@ -3,15 +3,15 @@
 <!DOCTYPE Parts SYSTEM "PartManager.dtd">
 
 <Parts
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://PartManager.com PartManager.xsd"
         xmlns="http://PartManager.com"
-        xmlns:VGA="http://PartManager.com/parts/VGA"
         xmlns:CPU="http://PartManager.com/parts/CPU"
-        xmlns:part="http://PartManager.com/part">
-    <!--=========-->
-    <!--== VGA ==-->
-    <!--=========-->
+        xmlns:VGA="http://PartManager.com/parts/VGA"
+        xmlns:part="http://PartManager.com/part"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://PartManager.com PartManager.xsd">
+    <!--=================-->
+    <!--== List of VGA ==-->
+    <!--=================-->
     <!--NVIDIA, GeForce RTX 30 series-->
     <VGA:VGA id="n0">
         <part:name>GeForce RTX 3090</part:name>
@@ -234,9 +234,9 @@
         </VGA:specs>
     </VGA:VGA>
 
-    <!--=========-->
-    <!--== CPU ==-->
-    <!--=========-->
+    <!--=================-->
+    <!--== List of CPU ==-->
+    <!--=================-->
     <!--Intel, 9th Gen-->
     <CPU:CPU id="i1">
         <part:name>Core i3-9100</part:name>

@@ -1,7 +1,6 @@
 package main.form;
 
-import main.controller.FileController;
-import main.controller.XmlController;
+import main.controller.Controller;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,8 +12,7 @@ import java.util.ArrayList;
 
 public class ControlPanel
 {
-    FileController fileController;
-    XmlController xmlController;
+    Controller controller;
 
     ArrayList<JButton> buttonList;
     public JPanel mainPanel;
@@ -30,13 +28,11 @@ public class ControlPanel
     private JLabel statusBar;
 
     String currentPath;
+    boolean isSaved = true;
 
     public ControlPanel(DisplayPanel displayPanel)
     {
-        this.fileController = FileController.getInstance(displayPanel, statusBar);
-        this.xmlController = XmlController.getInstance(displayPanel, statusBar);
-
-        mainPanel.setBorder(new MatteBorder(0, 2, 2, 2, Color.black));
+        this.controller = Controller.getInstance(displayPanel, statusBar);
 
         buttonList = new ArrayList<>();
         buttonList.add(a1LoadButton);
@@ -72,7 +68,7 @@ public class ControlPanel
 
         statusBar.setForeground(Color.red);
         statusBar.setText("File not loaded");
-        statusBar.setBorder(new EmptyBorder(0,0,0,10));
+        statusBar.setBorder(new EmptyBorder(0, 0, 0, 10));
     }
 
     private void addKeyBind(JButton button, String key, String mapKey, Action action)
@@ -93,8 +89,10 @@ public class ControlPanel
             if (path == null)
                 return;
 
-            if (fileController.load(path))
+            if (controller.load(path))
                 currentPath = path;
+
+            isSaved = true;
         }
     };
 
@@ -103,13 +101,33 @@ public class ControlPanel
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            String rootName = JOptionPane.showInputDialog(null, "Enter the file name", "2. Make", JOptionPane.PLAIN_MESSAGE);
+            Object[] options = {
+                    "VGA and CPU",
+                    "Only VGA",
+                    "Only CPU",
+                    "Empty file"};
+            int iResult = JOptionPane.showOptionDialog(null,
+                    "Select type(s) to include.",
+                    "2. Make",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[2]);
 
-            if (rootName == null)
+            if (iResult == -1)
                 return;
 
-            if (fileController.make(rootName))
-                currentPath = rootName;
+            if (iResult == 0)
+                controller.make(true, true);
+            else if (iResult == 1)
+                controller.make(true, false);
+            else if (iResult == 2)
+                controller.make(false, true);
+            else if (iResult == 3)
+                controller.make(false, false);
+
+            isSaved = false;
         }
     };
 
@@ -123,7 +141,6 @@ public class ControlPanel
             if (str == null)
                 return;
 
-            xmlController.find(str);
         }
     };
 
@@ -137,8 +154,10 @@ public class ControlPanel
             if (newPath == null)
                 return;
 
-            fileController.save(newPath);
+            controller.save(newPath);
             currentPath = newPath;
+
+            isSaved = true;
         }
     };
 
@@ -147,7 +166,7 @@ public class ControlPanel
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            fileController.print();
+            controller.print();
         }
     };
 
@@ -161,7 +180,9 @@ public class ControlPanel
             if (str == null)
                 return;
 
-            fileController.insert(str);
+            controller.insert(str);
+
+            isSaved = false;
         }
     };
 
@@ -175,7 +196,9 @@ public class ControlPanel
             if (str == null)
                 return;
 
-            fileController.update(str);
+            controller.update(str);
+
+            isSaved = false;
         }
     };
 
@@ -189,7 +212,8 @@ public class ControlPanel
             if (str == null)
                 return;
 
-            fileController.delete(str);
+            controller.delete(str);
+            isSaved = false;
         }
     };
 
@@ -198,13 +222,21 @@ public class ControlPanel
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            int iResult = JOptionPane.showConfirmDialog(null, "Do you want to save the changes?", "9. Exit", JOptionPane.YES_NO_CANCEL_OPTION);
+            if (isSaved == false)
+            {
+                int iResult = JOptionPane.showConfirmDialog(null, "Do you want to save the changes?", "9. Exit", JOptionPane.YES_NO_CANCEL_OPTION);
 
-            if (iResult != JOptionPane.OK_OPTION && iResult != JOptionPane.NO_OPTION)
-                return;
+                if (iResult != JOptionPane.OK_OPTION && iResult != JOptionPane.NO_OPTION)
+                    return;
 
-            if (iResult == JOptionPane.OK_OPTION && currentPath != null && currentPath.length() != 0)
-                fileController.save(currentPath);
+                if (iResult == JOptionPane.OK_OPTION)
+                {
+                    while (currentPath == null || currentPath.isBlank())
+                        currentPath = JOptionPane.showInputDialog(null, "Enter the file name");
+
+                    controller.save(currentPath);
+                }
+            }
 
             System.exit(0);
         }

@@ -1,5 +1,7 @@
 package main.form;
 
+import org.w3c.dom.Node;
+
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -25,6 +27,9 @@ public class DisplayPanel extends JPanel
 
     DisplayPanel()
     {
+        setLayout(new BorderLayout());
+
+
         editModeTreeRoot = new DefaultMutableTreeNode();
         editModeTree = new JTree(editModeTreeRoot);
 
@@ -33,13 +38,8 @@ public class DisplayPanel extends JPanel
         viewModePane = new JScrollPane(textArea);
         editModePane = new JScrollPane(editModeTree);
 
-        setLayout(new BorderLayout());
-        setBorder(new MatteBorder(2, 2, 1, 2, Color.black));
-
-        add(tabbedPane, BorderLayout.CENTER);
-
-        tabbedPane.addTab("View Mode", viewModePane);
-        tabbedPane.addTab("Edit Mode", editModePane);
+        tabbedPane.add("View Mode", viewModePane);
+        tabbedPane.add("Edit Mode", editModePane);
 
         viewModePane.setBorder(new CompoundBorder(new LineBorder(Color.darkGray, 10),
                 new EmptyBorder(0, 10, 0, 0)));
@@ -63,6 +63,8 @@ public class DisplayPanel extends JPanel
 
         tabbedPane.setEnabledAt(1, false);
 
+        add(tabbedPane, BorderLayout.CENTER);
+
         MouseListener ml = new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 int selRow = editModeTree.getRowForLocation(e.getX(), e.getY());
@@ -70,7 +72,7 @@ public class DisplayPanel extends JPanel
                 if(selRow != -1) {
                     if(e.getClickCount() == 1) {
                         System.out.println("ROW: "+selRow);
-                        System.out.println(selPath.getLastPathComponent());
+                        System.out.println(((DefaultMutableTreeNode)selPath.getLastPathComponent()).getDepth());
                     }
                     else if(e.getClickCount() == 2) {
                         System.out.println("ROW: "+selRow);
@@ -103,6 +105,11 @@ public class DisplayPanel extends JPanel
     {
         tabbedPane.setEnabledAt(1, b);
     }
+
+//    public Node selectedNode()
+//    {
+//        return
+//    }
 
 
 

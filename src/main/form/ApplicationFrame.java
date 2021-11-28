@@ -8,6 +8,9 @@ public class ApplicationFrame extends JFrame
     private DisplayPanel displayPanel;
     private JPanel controlPanel;
 
+    int width = 750;
+    int height = 1000;
+
     public ApplicationFrame()
     {
         displayPanel = new DisplayPanel();
@@ -18,20 +21,21 @@ public class ApplicationFrame extends JFrame
         setTitle("XML Programming");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout());
-        setSize(750, 1000);
-        displayPanel.setMaximumSize(new Dimension(480, 640 / 3));
-        controlPanel.setMaximumSize(new Dimension(480, 640 * 2 / 3));
+        setSize(width, height);
+
+        displayPanel.setPreferredSize(new Dimension(width, height * 2 / 3));
+        controlPanel.setPreferredSize(new Dimension(width, height / 3));
 
         GridBagConstraints c = new GridBagConstraints();
 
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1;
 
-        c.weighty = 0.7;
+        c.weighty = 0.67;
         c.gridy = 0;
         getContentPane().add(displayPanel, c);
 
-        c.weighty = 0.3;
+        c.weighty = 0.33;
         c.gridy = 1;
         getContentPane().add(controlPanel, c);
 
