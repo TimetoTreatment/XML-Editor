@@ -1,15 +1,16 @@
 package main.form;
 
+import main.domain.NodeContainer;
 import org.w3c.dom.Node;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.MatteBorder;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -18,17 +19,19 @@ import java.awt.event.MouseListener;
 
 public class DisplayPanel extends JPanel
 {
-    private JTabbedPane tabbedPane;
+    public JTabbedPane tabbedPane;
     private JTextPane textArea;
     private JScrollPane viewModePane;
     private JScrollPane editModePane;
     private JTree editModeTree;
     private DefaultMutableTreeNode editModeTreeRoot;
 
+    private DefaultMutableTreeNode selectedTreeNode = null;
+    TreePath selPath;
+
     DisplayPanel()
     {
         setLayout(new BorderLayout());
-
 
         editModeTreeRoot = new DefaultMutableTreeNode();
         editModeTree = new JTree(editModeTreeRoot);
@@ -47,7 +50,6 @@ public class DisplayPanel extends JPanel
         editModePane.setBorder(new CompoundBorder(new LineBorder(Color.darkGray, 10),
                 new EmptyBorder(0, 10, 0, 0)));
 
-
         viewModePane.setBackground(Color.white);
         editModePane.setBackground(Color.white);
 
@@ -60,28 +62,33 @@ public class DisplayPanel extends JPanel
         ((HTMLDocument) textArea.getDocument()).getStyleSheet().addRule("body {" +
                 "font-family: " + textArea.getFont().getFamily() + "; " +
                 "font-size: " + textArea.getFont().getSize() + "pt; }");
-
         tabbedPane.setEnabledAt(1, false);
 
         add(tabbedPane, BorderLayout.CENTER);
 
-        MouseListener ml = new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                int selRow = editModeTree.getRowForLocation(e.getX(), e.getY());
-                TreePath selPath = editModeTree.getPathForLocation(e.getX(), e.getY());
-                if(selRow != -1) {
-                    if(e.getClickCount() == 1) {
-                        System.out.println("ROW: "+selRow);
-                        System.out.println(((DefaultMutableTreeNode)selPath.getLastPathComponent()).getDepth());
-                    }
-                    else if(e.getClickCount() == 2) {
-                        System.out.println("ROW: "+selRow);
+        MouseListener ml = new MouseAdapter()
+        {
+            public void mousePressed(MouseEvent e)
+            {
+                if (editModeTree.getRowForLocation(e.getX(), e.getY()) != -1)
+                {
+                    if (e.getClickCount() == MouseEvent.BUTTON1)
+                    {
+                        selPath = editModeTree.getPathForLocation(e.getX(), e.getY());
+
+                        selectedTreeNode = ((DefaultMutableTreeNode) selPath.getLastPathComponent());
+                        Node domNode = ((NodeContainer) selectedTreeNode.getUserObject()).domNode;
+
+                        ((DefaultTreeModel) editModeTree.getModel()).reload(((DefaultMutableTreeNode) selPath.getLastPathComponent()));
+
+                        System.out.println("Name: " + domNode.getNodeName());
+                        System.out.println("Value: " + domNode.getNodeValue());
                     }
                 }
             }
         };
-        editModeTree.addMouseListener(ml);
 
+        editModeTree.addMouseListener(ml);
     }
 
     public void setViewModeText(String str)
@@ -96,21 +103,26 @@ public class DisplayPanel extends JPanel
         return editModeTreeRoot;
     }
 
-    public DefaultTreeModel getEditModeTreeModel()
-    {
-        return ((DefaultTreeModel) editModeTree.getModel());
-    }
-
     public void setEditModeEnable(boolean b)
     {
         tabbedPane.setEnabledAt(1, b);
+    }
+
+    public DefaultMutableTreeNode getSelectedNodeContainer()
+    {
+        return selectedTreeNode;
+    }
+
+    public void reload()
+    {
+        ((DefaultTreeModel) editModeTree.getModel()).reload();
+        editModeTree.setSelectionPath(selPath);
     }
 
 //    public Node selectedNode()
 //    {
 //        return
 //    }
-
 
 
 //    @Override

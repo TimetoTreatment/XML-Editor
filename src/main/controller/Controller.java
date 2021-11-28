@@ -2,8 +2,9 @@ package main.controller;
 
 import main.domain.CPU;
 import main.domain.Part;
-import main.domain.TreeNode;
+import main.domain.NodeContainer;
 import main.domain.VGA;
+import main.form.ControlPanel;
 import main.repository.MemoryRepository;
 import main.form.DisplayPanel;
 import org.apache.xerces.dom.DocumentImpl;
@@ -23,7 +24,6 @@ public class Controller
 
     private String plainText;
     private DefaultMutableTreeNode treeRoot;
-    private DefaultTreeModel treeModel;
 
     private Controller(DisplayPanel displayPanel, JLabel statusBar)
     {
@@ -32,7 +32,6 @@ public class Controller
         this.statusBar = statusBar;
 
         treeRoot = displayPanel.getEditModeTreeRoot();
-        treeModel = displayPanel.getEditModeTreeModel();
     }
 
     public boolean load(String path)
@@ -46,8 +45,7 @@ public class Controller
         statusBar.setForeground(Color.black);
 
         displayPanel.setEditModeEnable(true);
-
-        treeModel.reload();
+        displayPanel.reload();
 
         return true;
     }
@@ -58,6 +56,9 @@ public class Controller
 
         doc.setDocumentURI("New File");
         memoryRepository.setDocument(doc);
+
+        statusBar.setText("\"New File\" is loaded.");
+        statusBar.setForeground(Color.black);
 
         Element root = doc.createElement("Parts");
 
@@ -123,7 +124,7 @@ public class Controller
         print();
 
         displayPanel.setEditModeEnable(true);
-        treeModel.reload();
+        displayPanel.reload();
 
         return true;
     }
@@ -225,8 +226,6 @@ public class Controller
 
     public boolean createTree()
     {
-        String uri = memoryRepository.getDocument().getDocumentURI();
-
         Stack<Node> nodeStack = new Stack<>();
         Stack<Integer> indentStack = new Stack<>();
         Stack<DefaultMutableTreeNode> treeNodeStack = new Stack<>();
@@ -248,7 +247,7 @@ public class Controller
 
             DefaultMutableTreeNode treeNode = treeNodeStack.pop();
 
-            treeNode.setUserObject(new TreeNode(node));
+            treeNode.setUserObject(new NodeContainer(node));
 
             if (node.getNodeType() != Node.ATTRIBUTE_NODE)
             {
@@ -302,7 +301,24 @@ public class Controller
 
     public boolean update(String str)
     {
-        displayPanel.setViewModeText("The \"" + str + "\" update is complete.");
+        DefaultMutableTreeNode currentTreeNode = displayPanel.getSelectedNodeContainer();
+        Node currentDomNode = ((NodeContainer) currentTreeNode.getUserObject()).domNode;
+        Node newDomNode;
+
+        if (currentDomNode.getNodeValue() == null)
+        {
+            if (str.indexOf(':') != -1)
+                newDomNode = currentDomNode.getOwnerDocument().renameNode(currentDomNode, str.substring(0, str.indexOf(':')), str);
+            else
+                newDomNode = currentDomNode.getOwnerDocument().renameNode(currentDomNode, null, str);
+
+            currentTreeNode.setUserObject(new NodeContainer(newDomNode));
+        }
+        else
+            currentDomNode.setNodeValue(str);
+
+        ((NodeContainer) currentTreeNode.getUserObject()).updateName();
+        displayPanel.reload();
 
         return true;
     }
@@ -417,4 +433,5 @@ public class Controller
             return instance;
         }
     }
+
 }

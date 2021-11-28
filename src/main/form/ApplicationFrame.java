@@ -1,5 +1,7 @@
 package main.form;
 
+import main.controller.Controller;
+
 import java.awt.*;
 import javax.swing.*;
 
@@ -48,10 +50,13 @@ public class ApplicationFrame extends JFrame
         String text = "";
 
         text += "<h1>XML Programming Project</h1><br/>";
+
         text += "<h2>How to Use</h2>";
-        text += "&nbsp;&nbsp;1. Load or Make XML file.<br/>";
-        text += "&nbsp;&nbsp;2. Manipulate XML. <br/>";
-        text += "&nbsp;&nbsp;3. Save and Exit. <br/><br/>";
+        text += "&nbsp;&nbsp;1. Load or Make XML File.<br/>";
+        text += "&nbsp;&nbsp;2. Click \"Edit Mode\" in tab.<br/>";
+        text += "&nbsp;&nbsp;3. Edit XML DOM. <br/>";
+        text += "&nbsp;&nbsp;4. Save and Exit. <br/><br/>";
+
         text += "<h2>Legend</h2>";
         text += "&nbsp;&nbsp;<font color=\"blue\"><b>[E]</b> Element <br/>";
         text += "&nbsp;&nbsp;<font color=\"#0078FF\"><b>[A]</b> Attribute <br/>";

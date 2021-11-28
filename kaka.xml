@@ -1,19 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="PartManager.xsl"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Parts SYSTEM "PartManager.dtd">
-
-<Parts
-        xmlns="http://PartManager.com"
-        xmlns:CPU="http://PartManager.com/parts/CPU"
-        xmlns:VGA="http://PartManager.com/parts/VGA"
-        xmlns:part="http://PartManager.com/part"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://PartManager.com PartManager.xsd">
+<?xml-stylesheet type="text/xsl" href="PartManager.xsl"?><Parts xmlns="http://PartManager.com" xmlns:CPU="http://PartManager.com/parts/CPU" xmlns:VGA="http://PartManager.com/parts/VGA" xmlns:part="http://PartManager.com/part" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://PartManager.com PartManager.xsd">
     <!--=================-->
     <!--== List of VGA ==-->
     <!--=================-->
     <!--NVIDIA, GeForce RTX 30 series-->
-    <VGA:VGA id="n0">
+    <VGA:VGA id="kakapo">
         <part:name>GeForce RTX 3090</part:name>
         <part:manufacturer>NVIDIA</part:manufacturer>
         <part:series>GeForce RTX 30</part:series>
@@ -28,7 +20,7 @@
     </VGA:VGA>
     <VGA:VGA id="n2">
         <part:name>GeForce RTX 3080</part:name>
-        <part:manufacturer>&NVDA;</part:manufacturer>
+        <part:manufacturer>NVIDIA</part:manufacturer>
         <part:series>GeForce RTX 30</part:series>
         <part:launch_date>2020-09-17</part:launch_date>
         <part:msrp unit="KRW">699000</part:msrp>

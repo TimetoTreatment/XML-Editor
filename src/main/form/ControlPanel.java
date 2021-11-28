@@ -5,7 +5,8 @@ import main.controller.Controller;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.MatteBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -14,7 +15,8 @@ public class ControlPanel
 {
     Controller controller;
 
-    ArrayList<JButton> buttonList;
+    ArrayList<JButton> buttons = new ArrayList<>();
+    ArrayList<JButton> editButtons = new ArrayList<>();
     public JPanel mainPanel;
     private JButton a1LoadButton;
     private JButton a2MakeButton;
@@ -26,6 +28,7 @@ public class ControlPanel
     private JButton a8DeleteButton;
     private JButton a9ExitButton;
     private JLabel statusBar;
+    private DisplayPanel displayPanel;
 
     String currentPath;
     boolean isSaved = true;
@@ -34,18 +37,17 @@ public class ControlPanel
     {
         this.controller = Controller.getInstance(displayPanel, statusBar);
 
-        buttonList = new ArrayList<>();
-        buttonList.add(a1LoadButton);
-        buttonList.add(a3FindButton);
-        buttonList.add(a2MakeButton);
-        buttonList.add(a4SaveButton);
-        buttonList.add(a9ExitButton);
-        buttonList.add(a5PrintButton);
-        buttonList.add(a6InsertButton);
-        buttonList.add(a7UpdateButton);
-        buttonList.add(a8DeleteButton);
+        buttons.add(a1LoadButton);
+        buttons.add(a3FindButton);
+        buttons.add(a2MakeButton);
+        buttons.add(a4SaveButton);
+        buttons.add(a9ExitButton);
+        buttons.add(a5PrintButton);
+        buttons.add(a6InsertButton);
+        buttons.add(a7UpdateButton);
+        buttons.add(a8DeleteButton);
 
-        for (var button : buttonList)
+        for (var button : buttons)
         {
             button.setForeground(Color.darkGray);
             button.setBackground(Color.white);
@@ -53,6 +55,17 @@ public class ControlPanel
             button.setFont(new Font(Font.DIALOG, Font.BOLD, 16));
             button.setFocusPainted(false);
         }
+
+        editButtons.add(a3FindButton);
+        editButtons.add(a6InsertButton);
+        editButtons.add(a7UpdateButton);
+        editButtons.add(a8DeleteButton);
+
+        for (var button : editButtons)
+            button.setEnabled(false);
+
+        a4SaveButton.setEnabled(false);
+        a5PrintButton.setEnabled(false);
 
         a9ExitButton.setForeground(new Color(192, 64, 64));
 
@@ -68,7 +81,14 @@ public class ControlPanel
 
         statusBar.setForeground(Color.red);
         statusBar.setText("File not loaded");
-        statusBar.setBorder(new EmptyBorder(0, 0, 0, 10));
+        statusBar.setBorder(new EmptyBorder(0, 22, 5, 0));
+
+        displayPanel.tabbedPane.addChangeListener(e -> {
+            if(displayPanel.tabbedPane.getSelectedIndex()==1)
+                setStatus(Status.EDITABLE);
+            else
+                setStatus(Status.LOADED);
+        });
     }
 
     private void addKeyBind(JButton button, String key, String mapKey, Action action)
@@ -91,6 +111,8 @@ public class ControlPanel
 
             if (controller.load(path))
                 currentPath = path;
+
+            setStatus(Status.LOADED);
 
             isSaved = true;
         }
@@ -126,6 +148,8 @@ public class ControlPanel
                 controller.make(false, true);
             else if (iResult == 3)
                 controller.make(false, false);
+
+            setStatus(Status.LOADED);
 
             isSaved = false;
         }
@@ -241,4 +265,31 @@ public class ControlPanel
             System.exit(0);
         }
     };
+
+    public enum Status
+    {
+        LOADED,
+        EDITABLE,
+    }
+
+    public void setStatus(Status status)
+    {
+        switch (status)
+        {
+            case LOADED -> {
+                a4SaveButton.setEnabled(true);
+                a5PrintButton.setEnabled(true);
+
+                for (var button : editButtons)
+                    button.setEnabled(false);
+            }
+            case EDITABLE -> {
+                a4SaveButton.setEnabled(true);
+                a5PrintButton.setEnabled(true);
+
+                for (var button : editButtons)
+                    button.setEnabled(true);
+            }
+        }
+    }
 }
