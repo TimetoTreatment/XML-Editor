@@ -16,7 +16,6 @@ public class MemoryRepository
 
     MemoryRepository()
     {
-
     }
 
     public Document getDocument()
@@ -51,21 +50,22 @@ public class MemoryRepository
 
     public boolean load(String path)
     {
-        try {
+        document = null;
+
+        try
+        {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
 
             factory.setValidating(true);
 
             document = builder.parse(path);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e)
+        {
+            System.out.println(e.getClass());
         }
 
-        if(document == null)
-            return false;
-
-        return true;
+        return document != null;
     }
 
     // Singleton
@@ -74,11 +74,14 @@ public class MemoryRepository
     public static MemoryRepository getInstance()
     {
         MemoryRepository result = instance;
-        if (result != null) {
+        if (result != null)
+        {
             return result;
         }
-        synchronized (MemoryRepository.class) {
-            if (instance == null) {
+        synchronized (MemoryRepository.class)
+        {
+            if (instance == null)
+            {
                 instance = new MemoryRepository();
             }
             return instance;

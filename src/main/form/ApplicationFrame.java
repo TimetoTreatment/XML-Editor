@@ -1,32 +1,30 @@
 package main.form;
 
-import main.controller.Controller;
-
 import java.awt.*;
 import javax.swing.*;
 
 public class ApplicationFrame extends JFrame
 {
-    private DisplayPanel displayPanel;
-    private JPanel controlPanel;
+    public final DisplayForm displayForm;
+    public final ControlForm controlForm;
 
-    int width = 750;
-    int height = 1000;
+    private final int width = 750;
+    private final int height = 1000;
 
     public ApplicationFrame()
     {
-        displayPanel = new DisplayPanel();
-        controlPanel = new ControlPanel(displayPanel).mainPanel;
+        displayForm = new DisplayForm();
+        controlForm = new ControlForm();
 
-        displayPanel.setViewModeText(tutorialText());
+        displayForm.setViewModeText(tutorialText());
 
         setTitle("XML Programming");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout());
         setSize(width, height);
 
-        displayPanel.setPreferredSize(new Dimension(width, height * 2 / 3));
-        controlPanel.setPreferredSize(new Dimension(width, height / 3));
+        displayForm.setPreferredSize(new Dimension(width, height * 2 / 3));
+        controlForm.setPreferredSize(new Dimension(width, height / 3));
 
         GridBagConstraints c = new GridBagConstraints();
 
@@ -35,11 +33,11 @@ public class ApplicationFrame extends JFrame
 
         c.weighty = 0.67;
         c.gridy = 0;
-        getContentPane().add(displayPanel, c);
+        getContentPane().add(displayForm, c);
 
         c.weighty = 0.33;
         c.gridy = 1;
-        getContentPane().add(controlPanel, c);
+        getContentPane().add(controlForm.mainPanel, c);
 
         setLocationRelativeTo(null);
         setVisible(true);

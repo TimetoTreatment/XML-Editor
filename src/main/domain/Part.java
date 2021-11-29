@@ -26,6 +26,10 @@ public class Part
         currentId++;
     }
 
+    public static void resetCurrentId()
+    {
+        currentId = 0;
+    }
 
 
 }

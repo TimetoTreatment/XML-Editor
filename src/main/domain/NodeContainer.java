@@ -2,8 +2,6 @@ package main.domain;
 
 import org.w3c.dom.Node;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
 public class NodeContainer
 {
     public Node domNode;
