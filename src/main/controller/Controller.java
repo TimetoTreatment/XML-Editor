@@ -1,18 +1,29 @@
 package main.controller;
 
 import main.domain.CPU;
-import main.domain.Part;
 import main.domain.NodeContainer;
+import main.domain.Part;
 import main.domain.VGA;
 import main.form.*;
-import main.repository.MemoryRepository;
+import main.repository.Repository;
 import org.apache.xerces.dom.DocumentImpl;
 import org.w3c.dom.*;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXParseException;
 
 import javax.swing.*;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Stack;
@@ -21,7 +32,7 @@ public class Controller
 {
     ApplicationFrame frame;
 
-    private final MemoryRepository memoryRepository;
+    private final Repository repository;
     private final DisplayForm displayForm;
     private final ControlForm controlForm;
     private final JLabel statusBar;
@@ -32,11 +43,14 @@ public class Controller
     private String currentFileName;
     private boolean isSaved;
 
+    private String validationResultDTD;
+    private String validationResultXSD;
+
     public Controller()
     {
         frame = new ApplicationFrame();
 
-        memoryRepository = MemoryRepository.getInstance();
+        repository = Repository.getInstance();
         displayForm = frame.displayForm;
         controlForm = frame.controlForm;
         statusBar = frame.controlForm.getStatusBar();
@@ -47,27 +61,46 @@ public class Controller
         currentFileName = "";
         isSaved = true;
 
+        validationResultDTD = "";
+
         displayForm.tabbedPane.addChangeListener(e -> {
-            if (displayForm.tabbedPane.getSelectedIndex() == 1)
-                controlForm.setStatus(ControlForm.Status.EDITABLE);
-            else
-                controlForm.setStatus(ControlForm.Status.LOADED);
+
+            switch (displayForm.tabbedPane.getSelectedIndex())
+            {
+                case 0 -> {
+                    controlForm.setStatus(ControlForm.Status.LOADED);
+                }
+                case 1 -> {
+                    controlForm.setStatus(ControlForm.Status.EDITABLE);
+                }
+                case 2 -> {
+                    controlForm.setStatus(ControlForm.Status.LOADED);
+                    validation();
+                }
+            }
         });
 
         displayForm.getEditModeTree().getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
         displayForm.getEditModeTree().addTreeSelectionListener(e -> {
-
             selectedTreeNode = ((DefaultMutableTreeNode) e.getPath().getLastPathComponent());
 
             if (!(selectedTreeNode.getUserObject() instanceof NodeContainer))
+            {
+                controlForm.setStatus(ControlForm.Status.LOADED);
                 return;
+            }
 
-            Node domNode = ((NodeContainer) selectedTreeNode.getUserObject()).domNode;
+            controlForm.setStatus(ControlForm.Status.EDITABLE);
 
-            System.out.println("Name: " + domNode.getNodeName());
-            System.out.println("Value : " + domNode.getNodeValue());
-            System.out.println("Text : " + domNode.getTextContent());
+//            Node domNode = ((NodeContainer) selectedTreeNode.getUserObject()).domNode;
+//            System.out.println("[NODE]");
+//            System.out.println("    Name   " + domNode.getNodeName());
+//            System.out.println("    Value  " + domNode.getNodeValue());
+//            System.out.println("    Text   " + domNode.getTextContent());
+//            System.out.println();
         });
+
+        printStatus("File not loaded", Color.red);
 
         addKeyBind(controlForm.buttonLoad(), "1", "LOAD", load);
         addKeyBind(controlForm.buttonMake(), "2", "MAKE", make);
@@ -78,6 +111,10 @@ public class Controller
         addKeyBind(controlForm.buttonUpdate(), "7", "UPDATE", update);
         addKeyBind(controlForm.buttonDelete(), "8", "DELETE", delete);
         addKeyBind(controlForm.buttonExit(), "9", "EXIT", exit);
+
+        controlForm.buttonDelete().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "DELETE");
+        controlForm.buttonFind().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK), "FIND");
+        controlForm.buttonSave().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), "SAVE");
     }
 
     private void addKeyBind(JButton button, String key, String mapKey, Action action)
@@ -92,7 +129,8 @@ public class Controller
     {
         statusBar.setText(message);
         statusBar.setForeground(color);
-        System.out.println(message);
+        System.out.println("[STATUS]");
+        System.out.println(message + "\n");
     }
 
     private void reloadFile()
@@ -108,7 +146,7 @@ public class Controller
         else
             controlForm.setStatus(ControlForm.Status.LOADED);
 
-        displayForm.setEditModeEnable(true);
+        displayForm.setFeaturesEnable(true);
         isSaved = true;
     }
 
@@ -138,11 +176,22 @@ public class Controller
             if (path == null || path.isBlank())
                 return;
 
-            if (!memoryRepository.load(path))
+            if (!repository.load(path))
             {
-                controlForm.setStatus(ControlForm.Status.NOT_LOADED);
-                displayForm.showMessageDialog("XML Project", "Could not find or parse \"" + path + "\"");
-                return;
+                switch (repository.getStatus())
+                {
+                    case FILE_NOT_FOUND -> {
+                        displayForm.showMessageDialog("XML Project: FILE NOT FOUND", "Could not find \"" + path + "\"");
+                        return;
+                    }
+                    case PARSE_FATAL_ERROR -> {
+                        displayForm.showMessageDialog("XML Project: FATAL ERROR", "Could not parse \"" + path + "\"\n\n" + repository.getErrorMsg());
+                        return;
+                    }
+                    case PARSE_ERROR -> {
+                        validationResultDTD += "[ERROR: DTD]\n" + repository.getErrorMsg();
+                    }
+                }
             }
 
             currentFilePath = path;
@@ -208,10 +257,12 @@ public class Controller
             }
 
             Part.resetCurrentId();
-            Document doc = new DocumentImpl();
 
-            doc.setDocumentURI("New File");
-            memoryRepository.setDocument(doc);
+            Document doc = new DocumentImpl();
+            DocumentType documentType = doc.getImplementation().createDocumentType("Parts", null, "PartManager.dtd");
+            doc.appendChild(documentType);
+
+            repository.setDocument(doc);
 
             Element root;
             Attr newAttribute;
@@ -378,7 +429,7 @@ public class Controller
             else
                 currentFileName = newPath.substring(newPath.lastIndexOf('\\') + 1);
 
-            memoryRepository.save(currentFilePath);
+            repository.save(currentFilePath);
 
             displayForm.setTreeTitle(currentFilePath);
             print();
@@ -416,7 +467,7 @@ public class Controller
             NodeContainer nodeContainer = (NodeContainer) selectedTreeNode.getUserObject();
             Node domNode = nodeContainer.domNode;
 
-            Document doc = memoryRepository.getDocument();
+            Document doc = repository.getDocument();
 
             Node newNode = null;
 
@@ -472,25 +523,45 @@ public class Controller
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            String str = displayForm.showInputDialog("XML Project", "Enter the keyword");
 
             DefaultMutableTreeNode currentTreeNode = selectedTreeNode;
             Node currentDomNode = ((NodeContainer) currentTreeNode.getUserObject()).domNode;
-            Node newDomNode;
+            Node newDomNode = null;
+
+            UpdateDialog dialog = new UpdateDialog(currentDomNode);
+
+            if (!dialog.isOK)
+                return;
+
+            String name = dialog.getName();
+            String value = dialog.getValue();
 
             String prevName = currentTreeNode.getUserObject().toString();
 
-            if (currentDomNode.getNodeValue() == null)
-            {
-                if (str.indexOf(':') != -1)
-                    newDomNode = currentDomNode.getOwnerDocument().renameNode(currentDomNode, str.substring(0, str.indexOf(':')), str);
-                else
-                    newDomNode = currentDomNode.getOwnerDocument().renameNode(currentDomNode, null, str);
+            Document doc = repository.getDocument();
 
-                currentTreeNode.setUserObject(new NodeContainer(newDomNode));
+            switch (currentDomNode.getNodeType())
+            {
+                case Node.ELEMENT_NODE -> {
+                    if (name.indexOf(':') != -1)
+                        newDomNode = doc.renameNode(currentDomNode, name.substring(0, name.indexOf(':')), name);
+                    else
+                        newDomNode = doc.renameNode(currentDomNode, null, name);
+
+                    currentTreeNode.setUserObject(new NodeContainer(newDomNode));
+                }
+                case Node.ATTRIBUTE_NODE -> {
+                    newDomNode = doc.renameNode(currentDomNode, null, name);
+                    newDomNode.setNodeValue(value);
+
+                    currentTreeNode.setUserObject(new NodeContainer(newDomNode));
+                }
+
+                case Node.COMMENT_NODE, Node.TEXT_NODE -> {
+                    currentDomNode.setNodeValue(value);
+                    newDomNode = currentDomNode;
+                }
             }
-            else
-                currentDomNode.setNodeValue(str);
 
             refreshViewMode();
             refreshEditMode();
@@ -501,7 +572,7 @@ public class Controller
             {
                 DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treeEnum.nextElement();
 
-                if (((NodeContainer) treeNode.getUserObject()).domNode == currentDomNode)
+                if (((NodeContainer) treeNode.getUserObject()).domNode == newDomNode)
                 {
                     displayForm.setSelectionPath(new TreePath(treeNode.getPath()));
                     break;
@@ -520,6 +591,13 @@ public class Controller
         public void actionPerformed(ActionEvent e)
         {
             DefaultMutableTreeNode currentTreeNode = selectedTreeNode;
+
+            if (selectedTreeNode == editModeTreeRoot)
+            {
+                JOptionPane.showMessageDialog(null, "Cannot delete root node", "XML Project", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             Node currentDomNode = ((NodeContainer) currentTreeNode.getUserObject()).domNode;
             Node parentNode;
 
@@ -593,7 +671,7 @@ public class Controller
         Stack<Node> nodeStack = new Stack<>();
         Stack<Integer> indentStack = new Stack<>();
 
-        nodeStack.push(memoryRepository.getDocument().getDocumentElement());
+        nodeStack.push(repository.getDocument().getDocumentElement());
         indentStack.push(0);
 
         String contents = "<h1 style=\"text-align:center\"> :: " + currentFileName + " ::</h1><br/>";
@@ -661,7 +739,7 @@ public class Controller
         Stack<Integer> indentStack = new Stack<>();
         Stack<DefaultMutableTreeNode> treeNodeStack = new Stack<>();
 
-        nodeStack.push(memoryRepository.getDocument().getDocumentElement());
+        nodeStack.push(repository.getDocument().getDocumentElement());
         indentStack.push(0);
 
         editModeTreeRoot.removeAllChildren();
@@ -816,5 +894,87 @@ public class Controller
         item.appendChild(specs);
 
         return item;
+    }
+
+    private void validation()
+    {
+        validationResultXSD = "";
+
+        Document doc = repository.getDocument();
+        NamedNodeMap attributes = doc.getDocumentElement().getAttributes();
+
+        if (attributes == null)
+        {
+            displayForm.setValidationText("No XSD was found.");
+            return;
+        }
+
+        Node schemaLocationNode = attributes.getNamedItem("xsi:schemaLocation");
+
+        if (schemaLocationNode == null)
+        {
+            displayForm.setValidationText("No XSD was found.");
+            return;
+        }
+
+        String location = schemaLocationNode.getNodeValue();
+
+        if (!location.contains(" "))
+        {
+            displayForm.setValidationText("No XSD was found.");
+            return;
+        }
+
+        String xmlPath;
+        String xsdPath;
+        String workingPath = "";
+
+        if (currentFilePath.lastIndexOf('\\') != -1)
+            workingPath = currentFilePath.substring(0, currentFilePath.lastIndexOf('\\')) + "\\";
+
+        xsdPath = workingPath + location.substring(location.indexOf(' ') + 1);
+        xmlPath = workingPath + "ValidationTemp" + (int) (1000 * Math.random());
+        repository.save(xmlPath);
+
+        try
+        {
+            SchemaFactory factory =
+                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            Schema schema = factory.newSchema(new File(xsdPath));
+            javax.xml.validation.Validator validator = schema.newValidator();
+            validator.setErrorHandler(new ErrorHandler()
+            {
+                @Override
+                public void warning(SAXParseException e)
+                {
+                    validationResultXSD += "[ERROR: XSD]\n" + e.getMessage() + "\n\n";
+                }
+
+                @Override
+                public void error(SAXParseException e)
+                {
+                    validationResultXSD += "[ERROR: XSD]\n" + e.getMessage() + "\n\n";
+                }
+
+                @Override
+                public void fatalError(SAXParseException e)
+                {
+                    validationResultXSD += "[ERROR: XSD]\n" + e.getMessage() + "\n\n";
+                }
+            });
+            validator.validate(new StreamSource(new File(xmlPath)));
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        String validationResult = validationResultDTD + validationResultXSD;
+
+        if (validationResult.isBlank())
+            displayForm.setValidationText("No error was found.");
+        else
+            displayForm.setValidationText(validationResultDTD + "\n" + validationResultXSD);
+
+        new File(xmlPath).delete();
     }
 }

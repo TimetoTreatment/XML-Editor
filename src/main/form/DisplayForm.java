@@ -13,7 +13,8 @@ import java.awt.*;
 public class DisplayForm extends JPanel
 {
     public JTabbedPane tabbedPane;
-    private final JTextPane textArea;
+    private final JTextPane textAreaViewMode;
+    private final JTextPane textAreaValidation;
     private final JTree editModeTree;
     private final DefaultMutableTreeNode editModeTreeRoot;
 
@@ -31,12 +32,19 @@ public class DisplayForm extends JPanel
         editModeTree = new JTree(dummyRoot);
 
         tabbedPane = new JTabbedPane();
-        textArea = new JTextPane();
-        JScrollPane viewModePane = new JScrollPane(textArea);
+        textAreaViewMode = new JTextPane();
+        textAreaValidation = new JTextPane();
+        JScrollPane viewModePane = new JScrollPane(textAreaViewMode);
         JScrollPane editModePane = new JScrollPane(editModeTree);
+        JScrollPane validationPane = new JScrollPane(textAreaValidation);
 
-        tabbedPane.add("View Mode", viewModePane);
-        tabbedPane.add("Edit Mode", editModePane);
+        viewModePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        editModePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        validationPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        tabbedPane.add("Viewer", viewModePane);
+        tabbedPane.add("Editor", editModePane);
+        tabbedPane.add("Validator", validationPane);
 
         viewModePane.setBorder(new CompoundBorder(new LineBorder(Color.darkGray, 10),
                 new EmptyBorder(0, 10, 0, 0)));
@@ -44,19 +52,26 @@ public class DisplayForm extends JPanel
         editModePane.setBorder(new CompoundBorder(new LineBorder(Color.darkGray, 10),
                 new EmptyBorder(0, 10, 0, 0)));
 
+        validationPane.setBorder(new CompoundBorder(new LineBorder(Color.darkGray, 10),
+                new EmptyBorder(0, 10, 0, 0)));
+
         viewModePane.setBackground(Color.white);
         editModePane.setBackground(Color.white);
+        validationPane.setBackground(Color.white);
 
-        textArea.setEditable(false);
-        textArea.setContentType("text/html");
+        textAreaValidation.setEditable(false);
+        textAreaViewMode.setEditable(false);
+        textAreaViewMode.setContentType("text/html");
 
-        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
+        textAreaViewMode.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
         editModeTree.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
 
-        ((HTMLDocument) textArea.getDocument()).getStyleSheet().addRule("body {" +
-                "font-family: " + textArea.getFont().getFamily() + "; " +
-                "font-size: " + textArea.getFont().getSize() + "pt; }");
+        ((HTMLDocument) textAreaViewMode.getDocument()).getStyleSheet().addRule("body {" +
+                "font-family: " + textAreaViewMode.getFont().getFamily() + "; " +
+                "font-size: " + textAreaViewMode.getFont().getSize() + "pt; }");
+
         tabbedPane.setEnabledAt(1, false);
+        tabbedPane.setEnabledAt(2, false);
 
         add(tabbedPane, BorderLayout.CENTER);
     }
@@ -64,8 +79,13 @@ public class DisplayForm extends JPanel
     public void setViewModeText(String str)
     {
         String htmlText = "<html>" + str + "</html>";
-        textArea.setText(htmlText);
-        textArea.setCaretPosition(0);
+        textAreaViewMode.setText(htmlText);
+        textAreaViewMode.setCaretPosition(0);
+    }
+
+    public void setValidationText(String str)
+    {
+        textAreaValidation.setText(str);
     }
 
     public void expandTree()
@@ -85,9 +105,10 @@ public class DisplayForm extends JPanel
         return editModeTreeRoot;
     }
 
-    public void setEditModeEnable(boolean b)
+    public void setFeaturesEnable(boolean b)
     {
         tabbedPane.setEnabledAt(1, b);
+        tabbedPane.setEnabledAt(2, b);
     }
 
     public void setSelectionPath(TreePath treePath)

@@ -3,6 +3,7 @@ package main.form;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.awt.event.KeyEvent;
 
 public class InsertDialog extends JDialog
 {
@@ -10,21 +11,6 @@ public class InsertDialog extends JDialog
     private JButton buttonOK;
     private JButton buttonCancel;
     private JComboBox<String> comboBoxType;
-
-    public String getName()
-    {
-        return textFieldName.getText();
-    }
-
-    public String getValue()
-    {
-        return textFieldValue.getText();
-    }
-
-    public NodeType getNodeType()
-    {
-        return type;
-    }
 
     private JTextField textFieldName;
     private JTextField textFieldValue;
@@ -41,6 +27,7 @@ public class InsertDialog extends JDialog
 
         buttonOK.addActionListener(e -> onOK());
         buttonCancel.addActionListener(e -> onCancel());
+        contentPane.registerKeyboardAction(e -> onCancel(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         buttonOK.setEnabled(false);
 
@@ -132,5 +119,20 @@ public class InsertDialog extends JDialog
     {
         isOK = false;
         dispose();
+    }
+
+    public String getName()
+    {
+        return textFieldName.getText();
+    }
+
+    public String getValue()
+    {
+        return textFieldValue.getText();
+    }
+
+    public NodeType getNodeType()
+    {
+        return type;
     }
 }

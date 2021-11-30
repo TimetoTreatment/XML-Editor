@@ -59,12 +59,8 @@ public class ControlForm
 
         a4SaveButton.setEnabled(false);
         a5PrintButton.setEnabled(false);
-
         a9ExitButton.setForeground(new Color(192, 64, 64));
 
-
-        statusBar.setForeground(Color.red);
-        statusBar.setText("File not loaded");
         statusBar.setBorder(new EmptyBorder(0, 22, 5, 0));
     }
 
