@@ -6,25 +6,21 @@ import main.domain.Part;
 import main.domain.VGA;
 import main.form.*;
 import main.repository.Repository;
+import main.repository.Validator;
 import org.apache.xerces.dom.DocumentImpl;
 import org.w3c.dom.*;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXParseException;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Stack;
 
@@ -39,12 +35,10 @@ public class Controller
     private final DefaultMutableTreeNode editModeTreeRoot;
 
     private DefaultMutableTreeNode selectedTreeNode;
+    private TreePath[] selectionPaths;
     private String currentFilePath;
     private String currentFileName;
     private boolean isSaved;
-
-    private String validationResultDTD;
-    private String validationResultXSD;
 
     public Controller()
     {
@@ -57,11 +51,10 @@ public class Controller
         editModeTreeRoot = displayForm.getEditModeTreeRoot();
 
         selectedTreeNode = editModeTreeRoot;
+        selectionPaths = displayForm.getPaths();
         currentFilePath = "";
         currentFileName = "";
         isSaved = true;
-
-        validationResultDTD = "";
 
         displayForm.tabbedPane.addChangeListener(e -> {
 
@@ -75,22 +68,22 @@ public class Controller
                 }
                 case 2 -> {
                     controlForm.setStatus(ControlForm.Status.LOADED);
-                    validation();
+                    validateDOM(true, true);
                 }
             }
         });
 
         displayForm.getEditModeTree().getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
         displayForm.getEditModeTree().addTreeSelectionListener(e -> {
+            selectionPaths = displayForm.getPaths();
             selectedTreeNode = ((DefaultMutableTreeNode) e.getPath().getLastPathComponent());
 
-            if (!(selectedTreeNode.getUserObject() instanceof NodeContainer))
-            {
+            if (selectedTreeNode == displayForm.getEditModeTreeRoot())
+                controlForm.setStatus(ControlForm.Status.EDITABLE_CANNOT_DELETE);
+            else if (selectedTreeNode.getUserObject() instanceof NodeContainer)
+                controlForm.setStatus(ControlForm.Status.EDITABLE);
+            else
                 controlForm.setStatus(ControlForm.Status.LOADED);
-                return;
-            }
-
-            controlForm.setStatus(ControlForm.Status.EDITABLE);
 
 //            Node domNode = ((NodeContainer) selectedTreeNode.getUserObject()).domNode;
 //            System.out.println("[NODE]");
@@ -115,6 +108,7 @@ public class Controller
         controlForm.buttonDelete().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "DELETE");
         controlForm.buttonFind().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK), "FIND");
         controlForm.buttonSave().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), "SAVE");
+        controlForm.buttonInsert().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "INSERT");
     }
 
     private void addKeyBind(JButton button, String key, String mapKey, Action action)
@@ -123,6 +117,38 @@ public class Controller
         button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(key), mapKey);
         button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("NUMPAD" + key), mapKey);
         button.getActionMap().put(mapKey, action);
+    }
+
+    private void validateDOM(boolean updateTextField, boolean updateStatusBar)
+    {
+        int errorCount = 0;
+        String allErrorMsg = "";
+
+        if (!Validator.isValidateDTD(repository))
+        {
+            ArrayList<String> errorMsgList = Validator.getErrorMsgList();
+
+            for (String errorMsg : errorMsgList)
+                allErrorMsg += errorMsg + "\n";
+
+            errorCount += errorMsgList.size();
+        }
+
+        if (!Validator.isValidateXSD(repository))
+        {
+            ArrayList<String> errorMsgList = Validator.getErrorMsgList();
+
+            for (String errorMsg : errorMsgList)
+                allErrorMsg += errorMsg + "\n";
+
+            errorCount += errorMsgList.size();
+        }
+
+        if (updateTextField)
+            displayForm.setValidationText(allErrorMsg);
+
+        if (updateStatusBar)
+            printStatus("Found " + errorCount + " error(s).", Color.black);
     }
 
     private void printStatus(String message, Color color)
@@ -135,18 +161,17 @@ public class Controller
 
     private void reloadFile()
     {
-        printStatus("\"" + currentFileName + "\" is loaded.", Color.black);
-
-        displayForm.setTreeTitle(currentFileName);
-
-        print();
-
         if (displayForm.tabbedPane.getSelectedIndex() == 1)
             controlForm.setStatus(ControlForm.Status.EDITABLE);
         else
             controlForm.setStatus(ControlForm.Status.LOADED);
 
+        displayForm.setTreeTitle(currentFileName);
         displayForm.setFeaturesEnable(true);
+
+        print();
+        validateDOM(true, false);
+
         isSaved = true;
     }
 
@@ -178,29 +203,15 @@ public class Controller
 
             if (!repository.load(path))
             {
-                switch (repository.getStatus())
-                {
-                    case FILE_NOT_FOUND -> {
-                        displayForm.showMessageDialog("XML Project: FILE NOT FOUND", "Could not find \"" + path + "\"");
-                        return;
-                    }
-                    case PARSE_FATAL_ERROR -> {
-                        displayForm.showMessageDialog("XML Project: FATAL ERROR", "Could not parse \"" + path + "\"\n\n" + repository.getErrorMsg());
-                        return;
-                    }
-                    case PARSE_ERROR -> {
-                        validationResultDTD += "[ERROR: DTD]\n" + repository.getErrorMsg();
-                    }
-                }
+                displayForm.showMessageDialog("XML Project: FILE NOT FOUND", "Could not find \"" + path + "\"");
+                return;
             }
 
             currentFilePath = path;
-            if (currentFilePath.lastIndexOf('\\') != -1)
-                currentFileName = currentFilePath.substring(currentFilePath.lastIndexOf('\\') + 1);
-            else
-                currentFileName = currentFilePath;
+            currentFileName = pathToName(path);
 
             reloadFile();
+            printStatus("\"" + currentFileName + "\" is loaded.", Color.black);
         }
     };
 
@@ -220,41 +231,14 @@ public class Controller
                     save();
             }
 
-            int iResult = displayForm.showOptionDialog(
-                    "XML Project",
-                    "Select type(s) to include.",
-                    new Object[]{
-                            "VGA and CPU",
-                            "Only VGA",
-                            "Only CPU",
-                            "Empty file"});
+            MakeDialog dialog = new MakeDialog();
 
-            if (iResult == -1)
+            if (!dialog.isOK)
                 return;
 
-            boolean includeVGA;
-            boolean includeCPU;
-
-            if (iResult == 0)
-            {
-                includeVGA = true;
-                includeCPU = true;
-            }
-            else if (iResult == 1)
-            {
-                includeVGA = true;
-                includeCPU = false;
-            }
-            else if (iResult == 2)
-            {
-                includeVGA = false;
-                includeCPU = true;
-            }
-            else // if (iResult == 3)
-            {
-                includeVGA = false;
-                includeCPU = false;
-            }
+            boolean includeVGA = dialog.isCheckedVGA();
+            boolean includeCPU = dialog.isCheckedCPU();
+            String path = dialog.getFileName();
 
             Part.resetCurrentId();
 
@@ -331,9 +315,13 @@ public class Controller
 
             doc.appendChild(root);
 
-            currentFilePath = "";
-            currentFileName = "New File";
+            currentFilePath = path;
+            currentFileName = path;
 
+            if (currentFilePath.isBlank())
+                currentFileName = "New File";
+
+            printStatus("\"" + currentFileName + "\" is created.", Color.black);
             reloadFile();
 
             isSaved = false;
@@ -365,7 +353,6 @@ public class Controller
                 target = keyword;
 
             ArrayList<TreePath> treePaths = new ArrayList<>();
-
             Enumeration<TreeNode> treeEnum = editModeTreeRoot.depthFirstEnumeration();
 
             while (treeEnum.hasMoreElements())
@@ -400,9 +387,9 @@ public class Controller
             displayForm.setSelectionPaths(treePaths.toArray(new TreePath[0]));
 
             if (treePaths.size() == 0)
-                printStatus("Could not find \"" + target + "\"", Color.magenta);
+                printStatus("Could not find \"" + keyword + "\"", Color.magenta);
             else
-                printStatus("Found " + treePaths.size() + " result(s) matching \"" + target + "\".", Color.black);
+                printStatus("Found " + treePaths.size() + " result(s) matching \"" + keyword + "\".", Color.black);
 
         }
     };
@@ -423,11 +410,7 @@ public class Controller
                 return;
 
             currentFilePath = newPath;
-
-            if (currentFilePath.lastIndexOf('\\') == -1)
-                currentFileName = newPath;
-            else
-                currentFileName = newPath.substring(newPath.lastIndexOf('\\') + 1);
+            currentFileName = pathToName(newPath);
 
             repository.save(currentFilePath);
 
@@ -464,55 +447,49 @@ public class Controller
             String value = dialog.getValue();
             InsertDialog.NodeType type = dialog.getNodeType();
 
-            NodeContainer nodeContainer = (NodeContainer) selectedTreeNode.getUserObject();
-            Node domNode = nodeContainer.domNode;
+            ArrayList<Node> newNodeList = new ArrayList<>();
 
-            Document doc = repository.getDocument();
-
-            Node newNode = null;
-
-            if (type == InsertDialog.NodeType.ELEMENT)
+            for (int i = 0; i < selectionPaths.length; i++)
             {
-                newNode = doc.createElement(name);
+                Document doc = repository.getDocument();
 
-                if (value != null && !value.isBlank())
-                    newNode.setTextContent(value);
+                NodeContainer nodeContainer = (NodeContainer) ((DefaultMutableTreeNode) selectionPaths[i].getLastPathComponent()).getUserObject();
+                Node domNode = nodeContainer.domNode;
+                Node newNode = null;
 
-                domNode.appendChild(newNode);
-            }
-            else if (type == InsertDialog.NodeType.ATTRIBUTE)
-            {
-                newNode = doc.createAttribute(name);
-
-                ((Attr) newNode).setValue(value);
-                ((Element) domNode).setAttributeNode((Attr) newNode);
-            }
-            else if (type == InsertDialog.NodeType.COMMENT)
-            {
-                newNode = doc.createComment(value);
-                domNode.appendChild(newNode);
-            }
-            else if (type == InsertDialog.NodeType.TEXT)
-            {
-                newNode = doc.createTextNode(value);
-                domNode.appendChild(newNode);
-            }
-
-            refreshViewMode();
-            refreshEditMode();
-
-            Enumeration<TreeNode> treeEnum = editModeTreeRoot.depthFirstEnumeration();
-
-            while (treeEnum.hasMoreElements())
-            {
-                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treeEnum.nextElement();
-
-                if (((NodeContainer) treeNode.getUserObject()).domNode == newNode)
+                if (type == InsertDialog.NodeType.ELEMENT)
                 {
-                    displayForm.setSelectionPath(new TreePath(treeNode.getPath()));
-                    break;
+                    newNode = doc.createElement(name);
+
+                    if (value != null && !value.isBlank())
+                        newNode.setTextContent(value);
+
+                    domNode.appendChild(newNode);
                 }
+                else if (type == InsertDialog.NodeType.ATTRIBUTE)
+                {
+                    newNode = doc.createAttribute(name);
+
+                    ((Attr) newNode).setValue(value);
+                    ((Element) domNode).setAttributeNode((Attr) newNode);
+                }
+                else if (type == InsertDialog.NodeType.COMMENT)
+                {
+                    newNode = doc.createComment(value);
+                    domNode.appendChild(newNode);
+                }
+                else if (type == InsertDialog.NodeType.TEXT)
+                {
+                    newNode = doc.createTextNode(value);
+                    domNode.appendChild(newNode);
+                }
+
+                if (newNode != null)
+                    newNodeList.add(newNode);
             }
+
+            print();
+            selectNodes(newNodeList, false);
 
             isSaved = false;
         }
@@ -559,25 +536,15 @@ public class Controller
 
                 case Node.COMMENT_NODE, Node.TEXT_NODE -> {
                     currentDomNode.setNodeValue(value);
-                    newDomNode = currentDomNode;
                 }
             }
 
-            refreshViewMode();
-            refreshEditMode();
+            print();
 
-            Enumeration<TreeNode> treeEnum = editModeTreeRoot.depthFirstEnumeration();
-
-            while (treeEnum.hasMoreElements())
-            {
-                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treeEnum.nextElement();
-
-                if (((NodeContainer) treeNode.getUserObject()).domNode == newDomNode)
-                {
-                    displayForm.setSelectionPath(new TreePath(treeNode.getPath()));
-                    break;
-                }
-            }
+            selectNodes(new ArrayList<>()
+            {{
+                add(currentDomNode);
+            }}, false);
 
             isSaved = false;
 
@@ -590,51 +557,69 @@ public class Controller
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            DefaultMutableTreeNode currentTreeNode = selectedTreeNode;
+            ArrayList<Node> newNodeList = new ArrayList<>();
+            String nodeStr = selectedTreeNode.getUserObject().toString();
 
-            if (selectedTreeNode == editModeTreeRoot)
+            for (int i = 0; i < selectionPaths.length; i++)
             {
-                JOptionPane.showMessageDialog(null, "Cannot delete root node", "XML Project", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+                DefaultMutableTreeNode currentTreeNode = (DefaultMutableTreeNode) selectionPaths[i].getLastPathComponent();
 
-            Node currentDomNode = ((NodeContainer) currentTreeNode.getUserObject()).domNode;
-            Node parentNode;
-
-            String nodeStr = currentTreeNode.toString();
-
-            if (currentDomNode.getNodeType() == Node.ATTRIBUTE_NODE)
-            {
-                parentNode = ((Attr) currentDomNode).getOwnerElement();
-                ((Element) parentNode).removeAttributeNode((Attr) currentDomNode);
-            }
-            else
-            {
-                parentNode = currentDomNode.getParentNode();
-                parentNode.removeChild(currentDomNode);
-            }
-
-            refreshViewMode();
-            refreshEditMode();
-
-            Enumeration<TreeNode> treeEnum = editModeTreeRoot.depthFirstEnumeration();
-
-            while (treeEnum.hasMoreElements())
-            {
-                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treeEnum.nextElement();
-
-                if (((NodeContainer) treeNode.getUserObject()).domNode == parentNode)
+                if (currentTreeNode == editModeTreeRoot)
                 {
-                    displayForm.expandTree(new TreePath(treeNode.getPath()));
-                    break;
+                    JOptionPane.showMessageDialog(null, "Cannot delete root node", "XML Project", JOptionPane.ERROR_MESSAGE);
+                    continue;
                 }
+
+                Node currentDomNode = ((NodeContainer) currentTreeNode.getUserObject()).domNode;
+                Node parentNode;
+
+                if (currentDomNode.getNodeType() == Node.ATTRIBUTE_NODE)
+                {
+                    parentNode = ((Attr) currentDomNode).getOwnerElement();
+                    ((Element) parentNode).removeAttributeNode((Attr) currentDomNode);
+                }
+                else
+                {
+                    parentNode = currentDomNode.getParentNode();
+                    parentNode.removeChild(currentDomNode);
+                }
+
+                newNodeList.add(parentNode);
             }
+
+            print();
+            selectNodes(newNodeList, true);
 
             isSaved = false;
 
             printStatus("\"" + nodeStr + "\" is deleted.", Color.black);
         }
     };
+
+    private void selectNodes(ArrayList<Node> nodeList, boolean expand)
+    {
+        Enumeration<TreeNode> treeEnum = editModeTreeRoot.depthFirstEnumeration();
+        ArrayList<TreePath> treePaths = new ArrayList<>();
+
+        while (treeEnum.hasMoreElements())
+        {
+            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treeEnum.nextElement();
+
+            for (int i = 0; i < nodeList.size(); i++)
+            {
+                if (((NodeContainer) treeNode.getUserObject()).domNode == nodeList.get(i))
+                    treePaths.add(new TreePath(treeNode.getPath()));
+            }
+        }
+
+        if (expand)
+        {
+            for (int i = 0; i < treePaths.size(); i++)
+                displayForm.expandTree(treePaths.get(i));
+        }
+
+        displayForm.setSelectionPaths(treePaths.toArray(new TreePath[0]));
+    }
 
     Action exit = new AbstractAction()
     {
@@ -896,85 +881,14 @@ public class Controller
         return item;
     }
 
-    private void validation()
+
+    private String pathToName(String path)
     {
-        validationResultXSD = "";
-
-        Document doc = repository.getDocument();
-        NamedNodeMap attributes = doc.getDocumentElement().getAttributes();
-
-        if (attributes == null)
-        {
-            displayForm.setValidationText("No XSD was found.");
-            return;
-        }
-
-        Node schemaLocationNode = attributes.getNamedItem("xsi:schemaLocation");
-
-        if (schemaLocationNode == null)
-        {
-            displayForm.setValidationText("No XSD was found.");
-            return;
-        }
-
-        String location = schemaLocationNode.getNodeValue();
-
-        if (!location.contains(" "))
-        {
-            displayForm.setValidationText("No XSD was found.");
-            return;
-        }
-
-        String xmlPath;
-        String xsdPath;
-        String workingPath = "";
-
-        if (currentFilePath.lastIndexOf('\\') != -1)
-            workingPath = currentFilePath.substring(0, currentFilePath.lastIndexOf('\\')) + "\\";
-
-        xsdPath = workingPath + location.substring(location.indexOf(' ') + 1);
-        xmlPath = workingPath + "ValidationTemp" + (int) (1000 * Math.random());
-        repository.save(xmlPath);
-
-        try
-        {
-            SchemaFactory factory =
-                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(new File(xsdPath));
-            javax.xml.validation.Validator validator = schema.newValidator();
-            validator.setErrorHandler(new ErrorHandler()
-            {
-                @Override
-                public void warning(SAXParseException e)
-                {
-                    validationResultXSD += "[ERROR: XSD]\n" + e.getMessage() + "\n\n";
-                }
-
-                @Override
-                public void error(SAXParseException e)
-                {
-                    validationResultXSD += "[ERROR: XSD]\n" + e.getMessage() + "\n\n";
-                }
-
-                @Override
-                public void fatalError(SAXParseException e)
-                {
-                    validationResultXSD += "[ERROR: XSD]\n" + e.getMessage() + "\n\n";
-                }
-            });
-            validator.validate(new StreamSource(new File(xmlPath)));
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        String validationResult = validationResultDTD + validationResultXSD;
-
-        if (validationResult.isBlank())
-            displayForm.setValidationText("No error was found.");
+        if (path.lastIndexOf('\\') != -1)
+            return path.substring(path.lastIndexOf('\\') + 1);
+        else if (path.lastIndexOf(path.lastIndexOf('/')) != -1)
+            return path.substring(path.lastIndexOf('/') + 1);
         else
-            displayForm.setValidationText(validationResultDTD + "\n" + validationResultXSD);
-
-        new File(xmlPath).delete();
+            return path;
     }
 }

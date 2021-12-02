@@ -1,14 +1,9 @@
 package main.form;
 
-import main.controller.Controller;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.ArrayList;
 
 public class ControlForm
@@ -74,6 +69,7 @@ public class ControlForm
         NOT_LOADED,
         LOADED,
         EDITABLE,
+        EDITABLE_CANNOT_DELETE,
     }
 
     public void setStatus(Status status)
@@ -100,6 +96,15 @@ public class ControlForm
 
                 for (var button : editButtons)
                     button.setEnabled(true);
+            }
+            case EDITABLE_CANNOT_DELETE -> {
+                a4SaveButton.setEnabled(true);
+                a5PrintButton.setEnabled(true);
+
+                for (var button : editButtons)
+                    button.setEnabled(true);
+
+                a8DeleteButton.setEnabled(false);
             }
         }
     }

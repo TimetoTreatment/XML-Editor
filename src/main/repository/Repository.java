@@ -3,29 +3,16 @@ package main.repository;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.Document;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.StringWriter;
 
 public class Repository
 {
     private Document document;
-    private String errorMsg;
-    private Status status;
-
-    public enum Status
-    {
-        GOOD,
-        FILE_NOT_FOUND,
-        PARSE_ERROR,
-        PARSE_FATAL_ERROR
-    }
 
     Repository()
     {
@@ -41,19 +28,10 @@ public class Repository
         this.document = document;
     }
 
-    public String getErrorMsg()
-    {
-        return errorMsg;
-    }
-
-    public Status getStatus()
-    {
-        return status;
-    }
-
     public void save(String path)
     {
         OutputFormat format = new OutputFormat(document);
+        format.setIndenting(true);
         StringWriter stringOut = new StringWriter();
         XMLSerializer serial = new XMLSerializer(stringOut, format);
         try
@@ -73,72 +51,22 @@ public class Repository
 
     public boolean load(String path)
     {
-        errorMsg = "";
         document = null;
-        status = Status.GOOD;
 
         try
         {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setValidating(true);
-
+            factory.setValidating(false);
             DocumentBuilder builder = factory.newDocumentBuilder();
-
-            validateDTD(builder);
-
             document = builder.parse(path);
 
-        } catch (IOException e)
-        {
-            status = Status.FILE_NOT_FOUND;
         } catch (Exception e)
         {
-            status = Status.PARSE_ERROR;
+            e.printStackTrace();
+            return false;
         }
 
-        return status == Status.GOOD;
-    }
-
-    private void validateDTD(DocumentBuilder builder)
-    {
-        builder.setErrorHandler(new ErrorHandler()
-        {
-            @Override
-            public void warning(SAXParseException e)
-            {
-                errorMsg += "[WARNING]\n";
-                exceptionInfo(e);
-                status = Status.PARSE_ERROR;
-            }
-
-            @Override
-            public void error(SAXParseException e)
-            {
-                if (e.getMessage().contains("must match DOCTYPE root"))
-                    return;
-
-                if (e.getMessage().contains("no grammar found"))
-                    return;
-
-                exceptionInfo(e);
-                status = Status.PARSE_ERROR;
-            }
-
-            @Override
-            public void fatalError(SAXParseException e)
-            {
-                exceptionInfo(e);
-                status = Status.PARSE_FATAL_ERROR;
-            }
-
-            private void exceptionInfo(SAXParseException e)
-            {
-                errorMsg += "    File   : " + e.getSystemId() + "\n";
-                errorMsg += "    Line   : " + e.getLineNumber() + "\n";
-                errorMsg += "    Column : " + e.getColumnNumber() + "\n";
-                errorMsg += "    Message: " + e.getMessage() + "\n\n";
-            }
-        });
+        return true;
     }
 
     // Singleton

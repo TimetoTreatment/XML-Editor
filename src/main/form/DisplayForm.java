@@ -163,4 +163,8 @@ public class DisplayForm extends JPanel
         return editModeTree;
     }
 
+    public TreePath[] getPaths()
+    {
+        return editModeTree.getSelectionPaths();
+    }
 }

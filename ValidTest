@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Parts SYSTEM "PartManager.dtd">
+<Parts xmlns="http://PartManager.com"
+    xmlns:CPU="http://PartManager.com/parts/CPU"
+    xmlns:VGA="http://PartManager.com/parts/VGA"
+    xmlns:part="http://PartManager.com/part"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://PartManager.com PartManager.xsd">
+    <!--=================-->
+    <!--== List of VGA ==-->
+    <!--=================-->
+    <!--NVIDIA, GeForce RTX 30 series-->
+    <VGA:VGA TEST_ATTR="asdf" id="i0">
+        <part:name>GeForce RTX 3090</part:name>
+        <part:manufacturer>NVIDIA</part:manufacturer>
+        <part:series>GeForce RTX 30</part:series>
+        <part:launch_date>2020-09-24</part:launch_date>
+        <part:msrp unit="USD">1499</part:msrp>
+        <VGA:specs>
+            <VGA:core_num>10496</VGA:core_num>
+            <VGA:memory_size type="GDDR6X">24</VGA:memory_size>
+            <VGA:power_consumption>350</VGA:power_consumption>
+            <VGA:slot_size>3</VGA:slot_size>
+        </VGA:specs>
+        <TEST_ELEM>asdf</TEST_ELEM>
+    </VGA:VGA>
+    <VGA:VGA id="i1">
+        <part:name>GeForce RTX 3080</part:name>
+        <part:manufacturer>NVIDIA</part:manufacturer>
+        <part:series>GeForce RTX 30</part:series>
+        <part:launch_date>2020-09-17</part:launch_date>
+        <part:msrp unit="USD">699000</part:msrp>
+        <VGA:specs>
+            <VGA:core_num>8704</VGA:core_num>
+            <VGA:memory_size type="GDDR6X">10</VGA:memory_size>
+            <VGA:power_consumption>320</VGA:power_consumption>
+            <VGA:slot_size>2</VGA:slot_size>
+        </VGA:specs>
+    </VGA:VGA>
+    <!--=================-->
+    <!--== List of CPU ==-->
+    <!--=================-->
+    <!--Intel, 9th Gen-->
+    <CPU:CPU id="i2">
+        <part:name>Core i3-9100</part:name>
+        <part:manufacturer>Intel</part:manufacturer>
+        <part:series>Core i3</part:series>
+        <part:launch_date>2018-10-19</part:launch_date>
+        <part:msrp unit="USD">122</part:msrp>
+        <CPU:specs>
+            <CPU:core_num>4</CPU:core_num>
+            <CPU:frequency>3.6</CPU:frequency>
+            <CPU:power_consumption>65</CPU:power_consumption>
+            <CPU:integrated_graphics>UHD 630</CPU:integrated_graphics>
+        </CPU:specs>
+    </CPU:CPU>
+    <CPU:CPU id="i3">
+        <part:name>Core i5-9600K</part:name>
+        <part:manufacturer>Intel</part:manufacturer>
+        <part:series>Core i5</part:series>
+        <part:launch_date>2018-10-19</part:launch_date>
+        <part:msrp unit="USD">262</part:msrp>
+        <CPU:specs>
+            <CPU:core_num>6</CPU:core_num>
+            <CPU:frequency>3.7</CPU:frequency>
+            <CPU:power_consumption>95</CPU:power_consumption>
+            <CPU:integrated_graphics>UHD 630</CPU:integrated_graphics>
+        </CPU:specs>
+    </CPU:CPU>
+</Parts>
