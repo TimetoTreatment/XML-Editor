@@ -1,5 +1,7 @@
 package main.form;
 
+import com.sun.source.tree.Tree;
+
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -9,6 +11,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+
 
 public class DisplayForm extends JPanel
 {
@@ -22,14 +25,14 @@ public class DisplayForm extends JPanel
     {
         setLayout(new BorderLayout());
 
-        DefaultMutableTreeNode dummyRoot = new DefaultMutableTreeNode();
+        DefaultMutableTreeNode fileNameNode = new DefaultMutableTreeNode();
 
         editModeTreeRoot = new DefaultMutableTreeNode();
 
-        dummyRoot.setUserObject("");
-        dummyRoot.add(editModeTreeRoot);
+        fileNameNode.setUserObject("");
+        fileNameNode.add(editModeTreeRoot);
 
-        editModeTree = new JTree(dummyRoot);
+        editModeTree = new JTree(fileNameNode);
 
         tabbedPane = new JTabbedPane();
         textAreaViewMode = new JTextPane();
@@ -40,7 +43,7 @@ public class DisplayForm extends JPanel
 
         viewModePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         editModePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        validationPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        validationPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         tabbedPane.add("Viewer", viewModePane);
         tabbedPane.add("Editor", editModePane);
@@ -59,16 +62,24 @@ public class DisplayForm extends JPanel
         editModePane.setBackground(Color.white);
         validationPane.setBackground(Color.white);
 
-        textAreaValidation.setEditable(false);
+        Font monospaceFont = new Font(Font.MONOSPACED, Font.PLAIN, 16);
+
         textAreaViewMode.setEditable(false);
         textAreaViewMode.setContentType("text/html");
+        textAreaValidation.setEditable(false);
+        textAreaValidation.setContentType("text/html");
 
-        textAreaViewMode.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
-        editModeTree.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
+        textAreaViewMode.setFont(monospaceFont);
+        textAreaValidation.setFont(monospaceFont);
+        editModeTree.setFont(monospaceFont);
 
         ((HTMLDocument) textAreaViewMode.getDocument()).getStyleSheet().addRule("body {" +
-                "font-family: " + textAreaViewMode.getFont().getFamily() + "; " +
-                "font-size: " + textAreaViewMode.getFont().getSize() + "pt; }");
+                "font-family: " + monospaceFont.getFamily() + "; " +
+                "font-size: " + monospaceFont.getSize() + "pt; }");
+
+        ((HTMLDocument) textAreaValidation.getDocument()).getStyleSheet().addRule("body {" +
+                "font-family: " + monospaceFont.getFamily() + "; " +
+                "font-size: " + monospaceFont.getSize() + "pt; }");
 
         tabbedPane.setEnabledAt(1, false);
         tabbedPane.setEnabledAt(2, false);
@@ -79,13 +90,21 @@ public class DisplayForm extends JPanel
     public void setViewModeText(String str)
     {
         String htmlText = "<html>" + str + "</html>";
+        htmlText = htmlText.replaceAll("\n", "<br/>");
+        htmlText = htmlText.replace(" ", "&nbsp;");
+
         textAreaViewMode.setText(htmlText);
         textAreaViewMode.setCaretPosition(0);
     }
 
     public void setValidationText(String str)
     {
-        textAreaValidation.setText(str);
+        String htmlText = "<html>" + str + "</html>";
+        htmlText = htmlText.replaceAll("\n", "<br/>");
+        htmlText = htmlText.replace(" ", "&nbsp;");
+
+        textAreaValidation.setText(htmlText);
+        textAreaValidation.setCaretPosition(0);
     }
 
     public void expandTree()
@@ -126,7 +145,7 @@ public class DisplayForm extends JPanel
         ((DefaultMutableTreeNode) editModeTree.getModel().getRoot()).setUserObject(title);
     }
 
-    public void reload()
+    public void reloadTree()
     {
         ((DefaultTreeModel) editModeTree.getModel()).reload();
     }

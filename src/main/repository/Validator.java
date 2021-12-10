@@ -13,8 +13,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class Validator
@@ -35,7 +33,7 @@ public class Validator
         errorMsgList.clear();
         errorType = ErrorType.VALIDATE;
 
-        String tempPath = "DtdValidationTemp" + (int) (1000 * Math.random());
+        String tempPath = "ValidationTempDTD" + (int) (1000 * Math.random());
 
         repository.save(tempPath);
 
@@ -92,7 +90,7 @@ public class Validator
         String xsdPath;
 
         xsdPath = location.substring(location.indexOf(' ') + 1);
-        xmlPath = "XsdValidationTemp" + (int) (1000 * Math.random());
+        xmlPath = "ValidationTempXSD" + (int) (1000 * Math.random());
         repository.save(xmlPath);
 
         try
@@ -158,10 +156,11 @@ public class Validator
 
         private String exceptionInfo(SAXParseException e, String parserType, String errorType)
         {
-            String errorMsg = "[" + parserType + ": " + errorType + "]\n";
+            String errorMsg = "";
             errorMsg += "    " + e.getMessage() + "\n";
             errorMsg += "    Line   : " + e.getLineNumber() + "\n";
             errorMsg += "    Column : " + e.getColumnNumber() + "\n";
+
             return errorMsg;
         }
     }

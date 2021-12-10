@@ -1,8 +1,10 @@
 package main.form;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -58,6 +60,7 @@ public class LoadDialog extends JDialog
             @Override
             public void changedUpdate(DocumentEvent e) {}
         });
+
 
         setTitle("XML Project");
         pack();
