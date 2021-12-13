@@ -8,8 +8,8 @@ import java.util.ArrayList;
 
 public class ControlForm
 {
-    ArrayList<JButton> buttons = new ArrayList<>();
-    ArrayList<JButton> editButtons = new ArrayList<>();
+    final ArrayList<JButton> buttons = new ArrayList<>();
+    final ArrayList<JButton> editButtons = new ArrayList<>();
     public JPanel mainPanel;
     private JButton a1LoadButton;
 

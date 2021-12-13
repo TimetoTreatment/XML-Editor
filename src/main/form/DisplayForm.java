@@ -1,7 +1,5 @@
 package main.form;
 
-import com.sun.source.tree.Tree;
-
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +13,7 @@ import java.awt.*;
 
 public class DisplayForm extends JPanel
 {
-    public JTabbedPane tabbedPane;
+    public final JTabbedPane tabbedPane;
     private final JTextPane textAreaViewMode;
     private final JTextPane textAreaValidation;
     private final JTree editModeTree;

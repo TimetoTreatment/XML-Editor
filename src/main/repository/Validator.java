@@ -15,6 +15,7 @@ import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.util.ArrayList;
 
+
 public class Validator
 {
     public enum ErrorType
@@ -22,14 +23,17 @@ public class Validator
         VALIDATE,
         ERROR,
         FATAL_ERROR,
-        XSD_NOT_FOUND
     }
 
+    public static boolean isDTDFound;
+    public static boolean isXSDFound;
+
     private static ErrorType errorType;
-    private static ArrayList<String> errorMsgList = new ArrayList<>();
+    private static final ArrayList<String> errorMsgList = new ArrayList<>();
 
     public static boolean isValidateDTD(Repository repository)
     {
+        isDTDFound = true;
         errorMsgList.clear();
         errorType = ErrorType.VALIDATE;
 
@@ -60,30 +64,31 @@ public class Validator
     {
         errorMsgList.clear();
         errorType = ErrorType.VALIDATE;
+        isXSDFound = true;
 
         Document doc = repository.getDocument();
         NamedNodeMap attributes = doc.getDocumentElement().getAttributes();
 
         if (attributes == null)
         {
-            errorType = ErrorType.XSD_NOT_FOUND;
-            return false;
+            isXSDFound = false;
+            return true;
         }
 
         Node schemaLocationNode = attributes.getNamedItem("xsi:schemaLocation");
 
         if (schemaLocationNode == null)
         {
-            errorType = ErrorType.XSD_NOT_FOUND;
-            return false;
+            isXSDFound = false;
+            return true;
         }
 
         String location = schemaLocationNode.getNodeValue();
 
         if (location == null || !location.contains(" "))
         {
-            errorType = ErrorType.XSD_NOT_FOUND;
-            return false;
+            isXSDFound = false;
+            return true;
         }
 
         String xmlPath;
@@ -114,7 +119,7 @@ public class Validator
 
     private static class CustomErrorHandler implements ErrorHandler
     {
-        String parserType;
+        final String parserType;
 
         CustomErrorHandler(String parserType)
         {
@@ -131,11 +136,11 @@ public class Validator
         @Override
         public void error(SAXParseException e)
         {
-            if (e.getMessage().contains("must match DOCTYPE root"))
+            if (e.getMessage().contains("must match DOCTYPE root") || e.getMessage().contains("no grammar found"))
+            {
+                isDTDFound = false;
                 return;
-
-            if (e.getMessage().contains("no grammar found"))
-                return;
+            }
 
             errorMsgList.add(exceptionInfo(e, parserType, "ERROR"));
             errorType = ErrorType.ERROR;
@@ -144,11 +149,11 @@ public class Validator
         @Override
         public void fatalError(SAXParseException e)
         {
-            if (e.getMessage().contains("must match DOCTYPE root"))
+            if (e.getMessage().contains("must match DOCTYPE root") || e.getMessage().contains("no grammar found"))
+            {
+                isDTDFound = false;
                 return;
-
-            if (e.getMessage().contains("no grammar found"))
-                return;
+            }
 
             errorMsgList.add(exceptionInfo(e, parserType, "FATAL_ERROR"));
             errorType = ErrorType.FATAL_ERROR;

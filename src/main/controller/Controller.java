@@ -22,9 +22,10 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Stack;
 
+
 public class Controller
 {
-    ApplicationFrame frame;
+    private final ApplicationFrame frame;
 
     private final Repository repository;
     private final DisplayForm displayForm;
@@ -114,7 +115,41 @@ public class Controller
         controlForm.mainPanel.getActionMap().put("TREE_NODE_UP", TreeNodeUp);
         controlForm.mainPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "TREE_NODE_DOWN");
         controlForm.mainPanel.getActionMap().put("TREE_NODE_DOWN", TreeNodeDown);
+
+        displayForm.tabbedPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_1, KeyEvent.CTRL_DOWN_MASK), "MODE_VIEWER");
+        displayForm.tabbedPane.getActionMap().put("MODE_VIEWER", ModeViewer);
+        displayForm.tabbedPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_2, KeyEvent.CTRL_DOWN_MASK), "MODE_EDITOR");
+        displayForm.tabbedPane.getActionMap().put("MODE_EDITOR", ModeEditor);
+        displayForm.tabbedPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_3, KeyEvent.CTRL_DOWN_MASK), "MODE_VALIDATOR");
+        displayForm.tabbedPane.getActionMap().put("MODE_VALIDATOR", ModeValidator);
     }
+
+    private final Action ModeViewer = new AbstractAction()
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            displayForm.tabbedPane.setSelectedIndex(0);
+        }
+    };
+
+    private final Action ModeEditor = new AbstractAction()
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            displayForm.tabbedPane.setSelectedIndex(1);
+        }
+    };
+
+    private final Action ModeValidator = new AbstractAction()
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            displayForm.tabbedPane.setSelectedIndex(2);
+        }
+    };
 
     private final Action TreeNodeUp = new AbstractAction()
     {
@@ -260,16 +295,14 @@ public class Controller
 
     private void validateDOM(boolean updateTextField, boolean updateStatusBar)
     {
-        ArrayList<String> errorMsgList = new ArrayList<>();
         String allErrorMsg = "";
         int errorCount = 0;
 
         if (!Validator.isValidateDTD(repository))
         {
-            errorMsgList.addAll(Validator.getErrorMsgList());
-            errorCount += errorMsgList.size();
+            errorCount += Validator.getErrorMsgList().size();
 
-            for (String errorMsg : errorMsgList)
+            for (String errorMsg : Validator.getErrorMsgList())
             {
                 allErrorMsg += "<font color=\"red\">[DTD]</font>\n";
                 allErrorMsg += "<font color=\"black\">" + errorMsg + "</font>\n";
@@ -278,24 +311,45 @@ public class Controller
 
         if (!Validator.isValidateXSD(repository))
         {
-            errorMsgList.addAll(Validator.getErrorMsgList());
-            errorCount += errorMsgList.size();
+            errorCount += Validator.getErrorMsgList().size();
 
-            for (String errorMsg : errorMsgList)
+            for (String errorMsg : Validator.getErrorMsgList())
             {
                 allErrorMsg += "<font color=\"red\">[XSD]</font>\n";
                 allErrorMsg += "<font color=\"black\">" + errorMsg + "</font>\n";
             }
         }
 
-        if (updateTextField)
-            displayForm.setValidationText(allErrorMsg);
-
-        if (updateStatusBar)
+        if (errorCount == 0)
         {
-            if (errorCount == 0)
+            if (updateTextField)
+            {
+                allErrorMsg = "<font color=\"blue\">[DTD] </font>";
+
+                if (Validator.isDTDFound)
+                    allErrorMsg += "<font color=\"black\">No errors found.</font>\n\n";
+                else
+                    allErrorMsg += "<font color=\"black\">No DTD found.</font>\n\n";
+
+                allErrorMsg += "<font color=\"blue\">[XSD] </font>";
+
+                if (Validator.isXSDFound)
+                    allErrorMsg += "<font color=\"black\">No errors found.</font>\n";
+                else
+                    allErrorMsg += "<font color=\"black\">No XSD found.</font>\n\n";
+
+                displayForm.setValidationText(allErrorMsg);
+            }
+
+            if (updateStatusBar)
                 printStatus("No errors found.", Color.black);
-            else
+        }
+        else
+        {
+            if (updateTextField)
+                displayForm.setValidationText(allErrorMsg);
+
+            if (updateStatusBar)
                 printStatus("Found " + errorCount + " validation error(s).", Color.red);
         }
     }
@@ -566,7 +620,7 @@ public class Controller
 
             repository.save(currentFilePath);
 
-            displayForm.setTreeTitle(currentFilePath);
+            displayForm.setTreeTitle(currentFileName);
             print();
 
             printStatus("File \"" + currentFileName + "\" has been saved.", Color.black);
@@ -601,11 +655,11 @@ public class Controller
 
             ArrayList<Node> newNodeList = new ArrayList<>();
 
-            for (int i = 0; i < selectionPaths.length; i++)
+            for (TreePath selectionPath : selectionPaths)
             {
                 Document doc = repository.getDocument();
 
-                NodeContainer nodeContainer = (NodeContainer) ((DefaultMutableTreeNode) selectionPaths[i].getLastPathComponent()).getUserObject();
+                NodeContainer nodeContainer = (NodeContainer) ((DefaultMutableTreeNode) selectionPath.getLastPathComponent()).getUserObject();
                 Node domNode = nodeContainer.domNode;
                 Node newNode = null;
 
@@ -649,7 +703,7 @@ public class Controller
         }
     };
 
-    Action update = new AbstractAction()
+    final Action update = new AbstractAction()
     {
         @Override
         public void actionPerformed(ActionEvent e)
@@ -657,7 +711,7 @@ public class Controller
 
             DefaultMutableTreeNode currentTreeNode = selectedTreeNode;
             Node currentDomNode = ((NodeContainer) currentTreeNode.getUserObject()).domNode;
-            Node newDomNode = null;
+            Node newDomNode;
 
             UpdateDialog dialog = new UpdateDialog(currentDomNode);
 
@@ -706,7 +760,7 @@ public class Controller
         }
     };
 
-    Action delete = new AbstractAction()
+    final Action delete = new AbstractAction()
     {
         @Override
         public void actionPerformed(ActionEvent e)
@@ -714,9 +768,9 @@ public class Controller
             ArrayList<Node> newNodeList = new ArrayList<>();
             String nodeStr = selectedTreeNode.getUserObject().toString();
 
-            for (int i = 0; i < selectionPaths.length; i++)
+            for (TreePath selectionPath : selectionPaths)
             {
-                DefaultMutableTreeNode currentTreeNode = (DefaultMutableTreeNode) selectionPaths[i].getLastPathComponent();
+                DefaultMutableTreeNode currentTreeNode = (DefaultMutableTreeNode) selectionPath.getLastPathComponent();
 
                 if (currentTreeNode == editModeTreeRoot)
                 {
@@ -735,6 +789,13 @@ public class Controller
                 else
                 {
                     parentNode = currentDomNode.getParentNode();
+
+                    if (currentDomNode.getPreviousSibling() != null && currentDomNode.getPreviousSibling().getNodeType() == Node.TEXT_NODE)
+                        parentNode.removeChild(currentDomNode.getPreviousSibling());
+
+                    else if (currentDomNode.getNextSibling() != null && currentDomNode.getNextSibling().getNodeType() == Node.TEXT_NODE)
+                        parentNode.removeChild(currentDomNode.getPreviousSibling());
+
                     parentNode.removeChild(currentDomNode);
                 }
 
@@ -750,7 +811,7 @@ public class Controller
         }
     };
 
-    Action exit = new AbstractAction()
+    final Action exit = new AbstractAction()
     {
         @Override
         public void actionPerformed(ActionEvent e)
@@ -1018,17 +1079,16 @@ public class Controller
         {
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) treeEnum.nextElement();
 
-            for (int i = 0; i < nodeList.size(); i++)
+            for (Node node : nodeList)
             {
-                if (((NodeContainer) treeNode.getUserObject()).domNode == nodeList.get(i))
+                if (((NodeContainer) treeNode.getUserObject()).domNode == node)
                     treePaths.add(new TreePath(treeNode.getPath()));
             }
         }
 
         if (expand)
         {
-            for (int i = 0; i < treePaths.size(); i++)
-                displayForm.expandTree(treePaths.get(i));
+            for (TreePath treePath : treePaths) displayForm.expandTree(treePath);
         }
 
         displayForm.setSelectionPaths(treePaths.toArray(new TreePath[0]));

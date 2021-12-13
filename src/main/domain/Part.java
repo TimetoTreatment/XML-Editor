@@ -4,14 +4,14 @@ public class Part
 {
     private static Integer currentId = 0;
 
-    public String id;
-    public String name;
+    public final String id;
+    public final String name;
 
-    public String manufacturer;
-    public String series;
-    public String launch_date;
-    public String msrp;
-    public String monetary_unit;
+    public final String manufacturer;
+    public final String series;
+    public final String launch_date;
+    public final String msrp;
+    public final String monetary_unit;
 
     public Part(String name, String manufacturer, String series, String launch_date, String msrp, String monetary_unit)
     {

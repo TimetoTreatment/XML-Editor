@@ -2,10 +2,10 @@ package main.domain;
 
 public class CPU extends Part
 {
-    public String core_num;
-    public String frequency;
-    public String power_consumption;
-    public String integrated_graphics;
+    public final String core_num;
+    public final String frequency;
+    public final String power_consumption;
+    public final String integrated_graphics;
 
     public CPU(String name,
                String manufacturer,

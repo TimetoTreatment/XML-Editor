@@ -2,11 +2,11 @@ package main.domain;
 
 public class VGA extends Part
 {
-    public String core_num;
-    public String memory_size;
-    public String memory_type;
-    public String power_consumption;
-    public String slot_size;
+    public final String core_num;
+    public final String memory_size;
+    public final String memory_type;
+    public final String power_consumption;
+    public final String slot_size;
 
     public VGA(String name,
                String manufacturer,

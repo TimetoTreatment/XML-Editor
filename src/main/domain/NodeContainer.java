@@ -4,7 +4,7 @@ import org.w3c.dom.Node;
 
 public class NodeContainer
 {
-    public Node domNode;
+    public final Node domNode;
 
     public NodeContainer(Node domNode)
     {
