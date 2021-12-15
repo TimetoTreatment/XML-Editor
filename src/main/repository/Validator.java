@@ -37,7 +37,7 @@ public class Validator
         errorMsgList.clear();
         errorType = ErrorType.VALIDATE;
 
-        String tempPath = "ValidationTempDTD" + (int) (1000 * Math.random());
+        String tempPath = repository.getWorkingPath() + "ValidationDTD" + (int) (1000 * Math.random());
 
         repository.save(tempPath);
 
@@ -94,8 +94,8 @@ public class Validator
         String xmlPath;
         String xsdPath;
 
-        xsdPath = location.substring(location.indexOf(' ') + 1);
-        xmlPath = "ValidationTempXSD" + (int) (1000 * Math.random());
+        xsdPath = repository.getWorkingPath() + location.substring(location.indexOf(' ') + 1);
+        xmlPath = repository.getWorkingPath() + "ValidationXSD" + (int) (1000 * Math.random());
         repository.save(xmlPath);
 
         try

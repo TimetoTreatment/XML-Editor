@@ -13,9 +13,16 @@ import java.io.StringWriter;
 public class Repository
 {
     private Document document;
+    private String workingPath;
 
     Repository()
     {
+        workingPath = "";
+    }
+
+    public String getWorkingPath()
+    {
+        return workingPath;
     }
 
     public Document getDocument()
@@ -47,6 +54,13 @@ public class Repository
         {
             e.printStackTrace();
         }
+
+        int lastIndexOfSlash = path.lastIndexOf("\\");
+
+        if (lastIndexOfSlash < 0)
+            workingPath = "";
+        else
+            workingPath = path.substring(0, path.lastIndexOf("\\")) + "\\";
     }
 
     public boolean load(String path)
@@ -64,6 +78,16 @@ public class Repository
         {
             e.printStackTrace();
             return false;
+        }
+
+        int lastIndexOfSlash = path.lastIndexOf("\\");
+
+        if (lastIndexOfSlash < 0)
+            workingPath = "";
+        else
+        {
+            workingPath = path.substring(0, path.lastIndexOf("\\")) + "\\";
+            System.setProperty("user.dir", workingPath);
         }
 
         return true;

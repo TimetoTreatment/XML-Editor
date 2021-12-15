@@ -6,10 +6,10 @@
     </book>
     <book id="b2">
         <title>Database</title>
-        <author>Kim</author>
+        <author>Yun</author>
     </book>
     <book id="b3">
         <title>Computer Networking</title>
-        <author>x</author>
+        <author>Kim</author>
     </book>
 </Books>
