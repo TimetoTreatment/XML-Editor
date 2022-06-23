@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="800px" src="https://user-images.githubusercontent.com/60598051/175308080-b65cc981-9c8d-4986-bc26-8ca808b3c98f.png">
+  <img width="600px" src="https://user-images.githubusercontent.com/60598051/175308080-b65cc981-9c8d-4986-bc26-8ca808b3c98f.png">
 </p>
 
 <h3 align="center">XML 편집기</h3>
@@ -21,7 +21,7 @@ XML 프로그래밍 수업의 프로젝트 결과물입니다. XML 문서의 `Vi
 ## 목차
 
 - [주요기능](#주요기능)
-- [팀 소개](#아니이게외않되-팀)
+- [수행실적](#수행실적)
 
 
 ## 주요기능
